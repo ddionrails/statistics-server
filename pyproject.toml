@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "statistics-server"
+name = "statistics_server"
 version = "0.0.1"
 description = "Dashboard to display panel-study data"
 authors = ["Dominique Seraphin Hansen <dhansen@diw.de>"]
