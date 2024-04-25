@@ -2,7 +2,7 @@
 
 from typing import Literal, Union
 
-from dash import dcc, html
+from dash import dcc
 
 LABEL_KEY: dict[str, Union[Literal["label"], Literal["label_de"]]] = {
     "en": "label",
