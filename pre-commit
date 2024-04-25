@@ -1,0 +1,20 @@
+#!/bin/bash
+# Should be linked to .git/hooks/pre-commit
+
+GREEN='\033[0;32m'
+REVERT_COLOR='\033[0m'
+
+
+divider=$(printf "%20s");
+
+echo -e ${GREEN}
+echo -e ${divider// /=}
+echo -e "RUN TESTS"
+echo -e ${divider// /=}${REVERT_COLOR}
+poetry run pytest
+
+echo -e ${GREEN}
+echo -e ${divider// /=}
+echo -e "RUN LINTING"
+echo -e ${divider// /=}${REVERT_COLOR}
+poetry run ruff check statistics_server
