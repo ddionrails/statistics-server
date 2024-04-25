@@ -23,8 +23,8 @@ def year_range_slider(start_year: int, end_year: int) -> dcc.Slider:
 
 def grouping_dropdown(metadata, element_id, exclude_value=None, language="en"):
     """Create a dropdown to select a group to group by."""
-    if language != "en":
-        language = "de"
+    if language != "de":
+        language = "en"
     label = LABEL_KEY[language]
     default = UNSELECTED_VALUE[language]
     options = [default]
