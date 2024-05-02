@@ -4,7 +4,7 @@
 
 from collections import deque
 
-from pandas import DataFrame, read_csv
+from pandas import DataFrame, Series, read_csv
 from plotly import graph_objects
 
 COLORS = [
@@ -26,6 +26,17 @@ COLORS = [
     "rgb(160, 22, 102)",
 ]
 
+LANGUAGE_LABELS = {
+    "en": {
+        "lower_confidence": "Lower confidence",
+        "upper_confidence": "Upper confidence",
+    },
+    "de": {
+        "lower_confidence": "Untere Konfidenz Grenze",
+        "upper_confidence": "Obere Konfidenz Grenze",
+    },
+}
+
 
 def get_color():
     while True:
@@ -43,6 +54,20 @@ def create_layers_for_groups(dataframe: DataFrame, group_names):
     return main_layers, confidence_layers
 
 
+def numerical_tooltip_formatting(
+    n: Series, lower_confidence: Series, upper_confidence: Series, language: str = "en"
+):
+    labels = LANGUAGE_LABELS[language]
+    for _n, lower, upper in zip(n, lower_confidence, upper_confidence):
+        yield (
+            f"N: {_n}"
+            "<br>"
+            f"{labels['lower_confidence']}: {lower:.2f}"
+            "<br>"
+            f"{labels['upper_confidence']}: {upper:.2f}"
+        )
+
+
 def create_main_layer(groups):
     color_palette = get_color()
     for grouped_by, grouped_data in groups:
@@ -51,14 +76,13 @@ def create_main_layer(groups):
             name=grouping_name,
             x=grouped_data["year"],
             y=grouped_data["mean"],
-            text=[
-                f"N: {n}<br>LCI: {lci:.2f}<br>UCI: {uci:.2f}"
-                for n, lci, uci in zip(
+            text=list(
+                numerical_tooltip_formatting(
                     grouped_data["n"],
                     grouped_data["mean_lower_confidence"],
                     grouped_data["mean_upper_confidence"],
                 )
-            ],
+            ),
             mode="lines+markers",
             line={"color": next(color_palette)},
             marker={"size": 5, "line": {"width": 2}},
@@ -68,11 +92,9 @@ def create_main_layer(groups):
 
 
 def create_confidence_layers(groups):
-    for grouped_by, grouped_data in groups:
-        grouping_name = " ".join(grouped_by)
+    for _, grouped_data in groups:
 
         yield graph_objects.Scatter(
-            name=f"{grouping_name} Upper Bound",
             x=grouped_data["year"],
             y=grouped_data["mean_upper_confidence"],
             mode="lines",
@@ -83,13 +105,12 @@ def create_confidence_layers(groups):
         )
 
         yield graph_objects.Scatter(
-            name=f"{grouping_name} Lower Bound",
             x=grouped_data["year"],
             y=grouped_data["mean_lower_confidence"],
             marker={"color": "#444"},
             line={"width": 0},
             mode="lines",
-            fillcolor="rgba(68, 68, 68, 0.3)",
+            fillcolor="rgba(68, 68, 68, 0.15)",
             fill="tonexty",
             showlegend=False,
             hoverinfo="skip",
@@ -113,7 +134,6 @@ def create_numerical_plot(dataframe, group: str = ""):
 
         confidence_layers = [
             graph_objects.Scatter(
-                name="Upper Bound",
                 x=dataframe["year"],
                 y=dataframe["mean_upper_confidence"],
                 mode="lines",
@@ -123,13 +143,12 @@ def create_numerical_plot(dataframe, group: str = ""):
                 hoverinfo="skip",
             ),
             graph_objects.Scatter(
-                name="Lower Bound",
                 x=dataframe["year"],
                 y=dataframe["mean_lower_confidence"],
                 marker={"color": "#444"},
                 line={"width": 0},
                 mode="lines",
-                fillcolor="rgba(68, 68, 68, 0.3)",
+                fillcolor="rgba(68, 68, 68, 0.15)",
                 fill="tonexty",
                 showlegend=False,
                 hoverinfo="skip",
