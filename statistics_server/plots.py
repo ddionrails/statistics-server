@@ -51,9 +51,18 @@ def create_main_layer(groups):
             name=grouping_name,
             x=grouped_data["year"],
             y=grouped_data["mean"],
+            text=[
+                f"N: {n}<br>LCI: {lci:.2f}<br>UCI: {uci:.2f}"
+                for n, lci, uci in zip(
+                    grouped_data["n"],
+                    grouped_data["mean_lower_confidence"],
+                    grouped_data["mean_upper_confidence"],
+                )
+            ],
             mode="lines+markers",
             line={"color": next(color_palette)},
             marker={"size": 5, "line": {"width": 2}},
+            hovertemplate="Year: %{x}<br>Mean: %{y:.2f}<br>%{text}",
         )
     del color_palette
 
@@ -70,6 +79,7 @@ def create_confidence_layers(groups):
             marker={"color": "#444"},
             line={"width": 0},
             showlegend=False,
+            hoverinfo="skip",
         )
 
         yield graph_objects.Scatter(
@@ -82,6 +92,7 @@ def create_confidence_layers(groups):
             fillcolor="rgba(68, 68, 68, 0.3)",
             fill="tonexty",
             showlegend=False,
+            hoverinfo="skip",
         )
 
 
@@ -109,6 +120,7 @@ def create_numerical_plot(dataframe, group: str = ""):
                 marker={"color": "#444"},
                 line={"width": 0},
                 showlegend=False,
+                hoverinfo="skip",
             ),
             graph_objects.Scatter(
                 name="Lower Bound",
@@ -120,6 +132,7 @@ def create_numerical_plot(dataframe, group: str = ""):
                 fillcolor="rgba(68, 68, 68, 0.3)",
                 fill="tonexty",
                 showlegend=False,
+                hoverinfo="skip",
             ),
         ]
     if group:
@@ -133,6 +146,7 @@ def create_numerical_plot(dataframe, group: str = ""):
     figure.update_layout(
         xaxis={"tickmode": "linear", "tick0": dataframe["year"].min(), "dtick": 1},
         yaxis={"tickmode": "linear", "tick0": 0, "dtick": 1},
+        hoverlabel=dict(font_size=16, font_family="Rockwell"),
     )
     figure.update_yaxes(showline=True, rangemode="tozero", linewidth=1, linecolor="black")
     figure.update_xaxes(showline=True, linewidth=1, linecolor="black")
