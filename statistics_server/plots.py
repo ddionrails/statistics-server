@@ -2,8 +2,8 @@
 
 # %% TODO: This is experimental discovery of plotly functions not prod. code
 
-from plotly import graph_objects
 from pandas import read_csv
+from plotly import graph_objects
 
 COLORS = [
     "rgb(255, 194, 10)",
