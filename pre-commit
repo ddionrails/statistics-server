@@ -7,6 +7,17 @@ REVERT_COLOR='\033[0m'
 
 divider=$(printf "%20s");
 
+
+echo -e ${GREEN}
+echo -e ${divider// /=}
+echo -e "SORT IMPORTS"
+echo -e ${divider// /=}${REVERT_COLOR}
+poetry run isort statistics_server --check
+if [ $? != 0 ]; then
+    poetry run isort statistics_server
+    exit 1
+fi
+
 echo -e ${GREEN}
 echo -e ${divider// /=}
 echo -e "RUN TESTS"
