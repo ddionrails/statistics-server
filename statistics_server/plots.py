@@ -2,6 +2,8 @@
 
 # %% TODO: This is experimental discovery of plotly functions not prod. code
 
+from collections import deque
+
 from pandas import DataFrame, read_csv
 from plotly import graph_objects
 
@@ -35,48 +37,52 @@ def create_layers_for_groups(dataframe: DataFrame, group_names):
     groups = dataframe.groupby(group_names)
     main_layers = []
     confidence_layers = []
-    color_palette = get_color()
+    main_layers = create_main_layer(groups)
+    confidence_layers = create_confidence_layers(groups)
 
+    return main_layers, confidence_layers
+
+
+def create_main_layer(groups):
+    color_palette = get_color()
+    for grouped_by, grouped_data in groups:
+        grouping_name = " ".join(grouped_by)
+        yield graph_objects.Scatter(
+            name=grouping_name,
+            x=grouped_data["year"],
+            y=grouped_data["mean"],
+            mode="lines+markers",
+            line={"color": next(color_palette)},
+            marker={"size": 5, "line": {"width": 2}},
+        )
+    del color_palette
+
+
+def create_confidence_layers(groups):
     for grouped_by, grouped_data in groups:
         grouping_name = " ".join(grouped_by)
 
-        main_layers.append(
-            graph_objects.Scatter(
-                name=grouping_name,
-                x=grouped_data["year"],
-                y=grouped_data["mean"],
-                mode="lines+markers",
-                line={"color": next(color_palette)},
-                marker={"size": 5, "line": {"width": 2}},
-            )
+        yield graph_objects.Scatter(
+            name=f"{grouping_name} Upper Bound",
+            x=grouped_data["year"],
+            y=grouped_data["mean_upper_confidence"],
+            mode="lines",
+            marker={"color": "#444"},
+            line={"width": 0},
+            showlegend=False,
         )
 
-        confidence_layers.append(
-            graph_objects.Scatter(
-                name=f"{grouping_name} Upper Bound",
-                x=grouped_data["year"],
-                y=grouped_data["mean_upper_confidence"],
-                mode="lines",
-                marker={"color": "#444"},
-                line={"width": 0},
-                showlegend=False,
-            )
+        yield graph_objects.Scatter(
+            name=f"{grouping_name} Lower Bound",
+            x=grouped_data["year"],
+            y=grouped_data["mean_lower_confidence"],
+            marker={"color": "#444"},
+            line={"width": 0},
+            mode="lines",
+            fillcolor="rgba(68, 68, 68, 0.3)",
+            fill="tonexty",
+            showlegend=False,
         )
-        confidence_layers.append(
-            graph_objects.Scatter(
-                name=f"{grouping_name} Lower Bound",
-                x=grouped_data["year"],
-                y=grouped_data["mean_lower_confidence"],
-                marker={"color": "#444"},
-                line={"width": 0},
-                mode="lines",
-                fillcolor="rgba(68, 68, 68, 0.3)",
-                fill="tonexty",
-                showlegend=False,
-            ),
-        )
-    del color_palette
-    return main_layers, confidence_layers
 
 
 def create_numerical_plot(dataframe, group: str = ""):
@@ -93,6 +99,7 @@ def create_numerical_plot(dataframe, group: str = ""):
                 marker={"size": 5, "line": {"width": 2}},
             )
         ]
+
         confidence_layers = [
             graph_objects.Scatter(
                 name="Upper Bound",
@@ -117,8 +124,10 @@ def create_numerical_plot(dataframe, group: str = ""):
         ]
     if group:
         main_layers, confidence_layers = create_layers_for_groups(dataframe, group)
+    layers = deque(main_layers)
+    layers.extend(confidence_layers)
 
-    figure = graph_objects.Figure([*main_layers, *confidence_layers])
+    figure = graph_objects.Figure(list(layers))
 
     figure.update_traces(connectgaps=True)
     figure.update_layout(
