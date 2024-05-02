@@ -2,7 +2,7 @@
 
 # %% TODO: This is experimental discovery of plotly functions not prod. code
 
-from pandas import read_csv
+from pandas import DataFrame, read_csv
 from plotly import graph_objects
 
 COLORS = [
@@ -31,12 +31,57 @@ def get_color():
             yield color
 
 
-def create_numerical_plot(dataframe, group: str = ""):
+def create_layers_for_groups(dataframe: DataFrame, group_names):
+    groups = dataframe.groupby(group_names)
     main_layers = []
     confidence_layers = []
     color_palette = get_color()
-    if group:
-        group_values = dataframe[group].unique()
+
+    for grouped_by, grouped_data in groups:
+        grouping_name = " ".join(grouped_by)
+
+        main_layers.append(
+            graph_objects.Scatter(
+                name=grouping_name,
+                x=grouped_data["year"],
+                y=grouped_data["mean"],
+                mode="lines+markers",
+                line={"color": next(color_palette)},
+                marker={"size": 5, "line": {"width": 2}},
+            )
+        )
+
+        confidence_layers.append(
+            graph_objects.Scatter(
+                name=f"{grouping_name} Upper Bound",
+                x=grouped_data["year"],
+                y=grouped_data["mean_upper_confidence"],
+                mode="lines",
+                marker={"color": "#444"},
+                line={"width": 0},
+                showlegend=False,
+            )
+        )
+        confidence_layers.append(
+            graph_objects.Scatter(
+                name=f"{grouping_name} Lower Bound",
+                x=grouped_data["year"],
+                y=grouped_data["mean_lower_confidence"],
+                marker={"color": "#444"},
+                line={"width": 0},
+                mode="lines",
+                fillcolor="rgba(68, 68, 68, 0.3)",
+                fill="tonexty",
+                showlegend=False,
+            ),
+        )
+    del color_palette
+    return main_layers, confidence_layers
+
+
+def create_numerical_plot(dataframe, group: str = ""):
+    main_layers = []
+    confidence_layers = []
     if not group:
         main_layers = [
             graph_objects.Scatter(
@@ -71,44 +116,7 @@ def create_numerical_plot(dataframe, group: str = ""):
             ),
         ]
     if group:
-        for group_value in group_values:
-            group_data = dataframe[dataframe[group] == group_value]
-
-            main_layers.append(
-                graph_objects.Scatter(
-                    name=f"{group_value}",
-                    x=group_data["year"],
-                    y=group_data["mean"],
-                    mode="lines+markers",
-                    line={"color": next(color_palette)},
-                    marker={"size": 5, "line": {"width": 2}},
-                )
-            )
-
-            confidence_layers.append(
-                graph_objects.Scatter(
-                    name=f"{group_value} Upper Bound",
-                    x=group_data["year"],
-                    y=group_data["mean_upper_confidence"],
-                    mode="lines",
-                    marker={"color": "#444"},
-                    line={"width": 0},
-                    showlegend=False,
-                )
-            )
-            confidence_layers.append(
-                graph_objects.Scatter(
-                    name=f"{group_value} Lower Bound",
-                    x=group_data["year"],
-                    y=group_data["mean_lower_confidence"],
-                    marker={"color": "#444"},
-                    line={"width": 0},
-                    mode="lines",
-                    fillcolor="rgba(68, 68, 68, 0.3)",
-                    fill="tonexty",
-                    showlegend=False,
-                ),
-            )
+        main_layers, confidence_layers = create_layers_for_groups(dataframe, group)
 
     figure = graph_objects.Figure([*main_layers, *confidence_layers])
 
@@ -120,12 +128,13 @@ def create_numerical_plot(dataframe, group: str = ""):
     figure.update_yaxes(showline=True, rangemode="tozero", linewidth=1, linecolor="black")
     figure.update_xaxes(showline=True, linewidth=1, linecolor="black")
 
-    del color_palette
     return figure
 
 
 if __name__ == "__main__":
-    data = read_csv("../tests/test_data/numerical/years_injob_year_sampreg.csv")
+    data = read_csv("../tests/test_data/numerical/years_injob_year_regtyp_sampreg.csv")
 
-    _figure = create_numerical_plot(data, "sampreg")
+    _figure = create_numerical_plot(data, ["sampreg", "regtyp"])
     _figure.show()
+
+# %%
