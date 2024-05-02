@@ -3,8 +3,10 @@
 # %% TODO: This is experimental discovery of plotly functions not prod. code
 
 from collections import deque
+from typing import Iterable
 
 from pandas import DataFrame, Series, read_csv
+from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
 COLORS = [
@@ -68,7 +70,7 @@ def numerical_tooltip_formatting(
         )
 
 
-def create_main_layer(groups):
+def create_main_layer(groups: DataFrameGroupBy | Iterable):
     color_palette = get_color()
     for grouped_by, grouped_data in groups:
         grouping_name = " ".join(grouped_by)
@@ -87,14 +89,17 @@ def create_main_layer(groups):
             line={"color": next(color_palette)},
             marker={"size": 5, "line": {"width": 2}},
             hovertemplate="Year: %{x}<br>Mean: %{y:.2f}<br>%{text}",
+            legendgroup=grouping_name,
         )
     del color_palette
 
 
 def create_confidence_layers(groups):
-    for _, grouped_data in groups:
+    for grouped_by, grouped_data in groups:
+        grouping_name = " ".join(grouped_by)
 
         yield graph_objects.Scatter(
+            name=grouping_name,
             x=grouped_data["year"],
             y=grouped_data["mean_upper_confidence"],
             mode="lines",
@@ -102,9 +107,11 @@ def create_confidence_layers(groups):
             line={"width": 0},
             showlegend=False,
             hoverinfo="skip",
+            legendgroup=grouping_name,
         )
 
         yield graph_objects.Scatter(
+            name=grouping_name,
             x=grouped_data["year"],
             y=grouped_data["mean_lower_confidence"],
             marker={"color": "#444"},
@@ -114,6 +121,7 @@ def create_confidence_layers(groups):
             fill="tonexty",
             showlegend=False,
             hoverinfo="skip",
+            legendgroup=grouping_name,
         )
 
 
@@ -121,39 +129,12 @@ def create_numerical_plot(dataframe, group: str = ""):
     main_layers = []
     confidence_layers = []
     if not group:
-        main_layers = [
-            graph_objects.Scatter(
-                name="Measurement",
-                x=dataframe["year"],
-                y=dataframe["mean"],
-                mode="lines+markers",
-                line={"color": "rgb(31, 119, 180)"},
-                marker={"size": 5, "line": {"width": 2}},
-            )
-        ]
+        # Make a single DataFrame iterable like a groupby result.
+        # " " is passed instead of "" because plotly will not group traces otherwise
+        dataframe_like_a_groupby = [((" "), dataframe)]
+        main_layers = create_main_layer(dataframe_like_a_groupby)
+        confidence_layers = create_confidence_layers(dataframe_like_a_groupby)
 
-        confidence_layers = [
-            graph_objects.Scatter(
-                x=dataframe["year"],
-                y=dataframe["mean_upper_confidence"],
-                mode="lines",
-                marker={"color": "#444"},
-                line={"width": 0},
-                showlegend=False,
-                hoverinfo="skip",
-            ),
-            graph_objects.Scatter(
-                x=dataframe["year"],
-                y=dataframe["mean_lower_confidence"],
-                marker={"color": "#444"},
-                line={"width": 0},
-                mode="lines",
-                fillcolor="rgba(68, 68, 68, 0.15)",
-                fill="tonexty",
-                showlegend=False,
-                hoverinfo="skip",
-            ),
-        ]
     if group:
         main_layers, confidence_layers = create_layers_for_groups(dataframe, group)
     layers = deque(main_layers)
