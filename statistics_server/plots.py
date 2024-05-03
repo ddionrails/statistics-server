@@ -11,15 +11,17 @@ from plotly import graph_objects
 
 from statistics_server.layout import (PLOT_LANGUAGE_LABELS,
                                       get_colors_from_palette)
-from statistics_server.types import ScatterPlotGenerator
+from statistics_server.types import EmptyIterator, ScatterPlotGenerator
 
 
 def create_traces_for_groups(
-    dataframe: DataFrame, group_names: list[str]
-) -> tuple[ScatterPlotGenerator, ScatterPlotGenerator]:
+    dataframe: DataFrame, group_names: list[str], show_confidence: bool = True
+) -> tuple[ScatterPlotGenerator, ScatterPlotGenerator | Iterable]:
     groups = dataframe.groupby(group_names)
     main_traces = create_main_trace(groups)
-    confidence_traces = create_confidence_traces(groups)
+    confidence_traces = EmptyIterator
+    if show_confidence:
+        confidence_traces = create_confidence_traces(groups)
 
     return main_traces, confidence_traces
 
@@ -112,21 +114,24 @@ def style_line_graph_figure(figure: graph_objects.Figure, start_year: int) -> No
 
 
 def create_numerical_figure(
-    dataframe: DataFrame, group: list[str] | None = None
+    dataframe: DataFrame, group: list[str] | None = None, show_confidence: bool = True
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
-    main_traces = []
-    confidence_traces = []
+    main_traces = EmptyIterator
+    confidence_traces = EmptyIterator
     if not group:
         # Make a single DataFrame iterable like a groupby result.
         # (" ") is passed as grouping names instead of ("")
         # because plotly will not group traces otherwise
         dataframe_like_a_groupby = [((" "), dataframe)]
         main_traces = create_main_trace(dataframe_like_a_groupby)
-        confidence_traces = create_confidence_traces(dataframe_like_a_groupby)
+        if show_confidence:
+            confidence_traces = create_confidence_traces(dataframe_like_a_groupby)
 
     if group:
-        main_traces, confidence_traces = create_traces_for_groups(dataframe, group)
+        main_traces, confidence_traces = create_traces_for_groups(
+            dataframe, group, show_confidence
+        )
     traces = deque(main_traces)
     traces.extend(confidence_traces)
 
