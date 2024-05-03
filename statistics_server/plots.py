@@ -3,68 +3,31 @@
 # %% TODO: This is experimental discovery of plotly functions not prod. code
 
 from collections import deque
-from typing import Iterable
+from typing import Generator, Iterable
 
 from pandas import DataFrame, Series, read_csv
 from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
-COLOR_PALETTE = (
-    "rgb(255, 194, 10)",
-    "rgb(12, 123, 220)",
-    "rgb(243, 203, 166)",
-    "rgb(51, 61, 112)",
-    "rgb(80, 253, 240)",
-    "rgb(183, 90, 96)",
-    "rgb(34, 148, 37)",
-    "rgb(118, 118, 239)",
-    "rgb(124, 101, 145)",
-    "rgb(201, 148, 184)",
-    "rgb(131, 231, 81)",
-    "rgb(105, 144, 57)",
-    "rgb(105, 170, 78)",
-    "rgb(234, 88, 74)",
-    "rgb(244, 186, 35)",
-    "rgb(160, 22, 102)",
-    "rgb(175, 31, 83)",
-    "rgb(59, 66, 156)",
-    "rgb(157, 159, 9)",
-    "rgb(199, 161, 75)",
-    "rgb(175, 186, 123)",
-)
-
-LANGUAGE_LABELS = {
-    "en": {
-        "lower_confidence": "Lower confidence",
-        "upper_confidence": "Upper confidence",
-    },
-    "de": {
-        "lower_confidence": "Untere Konfidenz Grenze",
-        "upper_confidence": "Obere Konfidenz Grenze",
-    },
-}
+from statistics_server.layout import (PLOT_LANGUAGE_LABELS,
+                                      get_colors_from_palette)
+from statistics_server.types import ScatterPlotGenerator
 
 
-def get_color():
-    while True:
-        for color in COLOR_PALETTE:
-            yield color
-
-
-def create_layers_for_groups(dataframe: DataFrame, group_names):
+def create_traces_for_groups(
+    dataframe: DataFrame, group_names: list[str]
+) -> tuple[ScatterPlotGenerator, ScatterPlotGenerator]:
     groups = dataframe.groupby(group_names)
-    main_layers = []
-    confidence_layers = []
-    main_layers = create_main_layer(groups)
-    confidence_layers = create_confidence_layers(groups)
+    main_traces = create_main_trace(groups)
+    confidence_traces = create_confidence_traces(groups)
 
-    return main_layers, confidence_layers
+    return main_traces, confidence_traces
 
 
 def numerical_tooltip_formatting(
     n: Series, lower_confidence: Series, upper_confidence: Series, language: str = "en"
-):
-    labels = LANGUAGE_LABELS[language]
+) -> Generator[str, None, None]:
+    labels = PLOT_LANGUAGE_LABELS[language]
     for _n, lower, upper in zip(n, lower_confidence, upper_confidence):
         yield (
             f"N: {_n}"
@@ -75,8 +38,11 @@ def numerical_tooltip_formatting(
         )
 
 
-def create_main_layer(groups: DataFrameGroupBy | Iterable):
-    color_palette = get_color()
+def create_main_trace(
+    groups: DataFrameGroupBy | Iterable,
+) -> ScatterPlotGenerator:
+    """Create lines for all groups in a line graph"""
+    color_palette = get_colors_from_palette()
     for grouped_by, grouped_data in groups:
         grouping_name = " ".join(grouped_by)
         yield graph_objects.Scatter(
@@ -99,7 +65,10 @@ def create_main_layer(groups: DataFrameGroupBy | Iterable):
     del color_palette
 
 
-def create_confidence_layers(groups):
+def create_confidence_traces(
+    groups: DataFrameGroupBy | Iterable,
+) -> ScatterPlotGenerator:
+    """Creates a trace for the upper and lower confidence interval bounds."""
     for grouped_by, grouped_data in groups:
         grouping_name = " ".join(grouped_by)
 
@@ -130,31 +99,40 @@ def create_confidence_layers(groups):
         )
 
 
-def create_numerical_plot(dataframe, group: str = ""):
-    main_layers = []
-    confidence_layers = []
-    if not group:
-        # Make a single DataFrame iterable like a groupby result.
-        # " " is passed instead of "" because plotly will not group traces otherwise
-        dataframe_like_a_groupby = [((" "), dataframe)]
-        main_layers = create_main_layer(dataframe_like_a_groupby)
-        confidence_layers = create_confidence_layers(dataframe_like_a_groupby)
-
-    if group:
-        main_layers, confidence_layers = create_layers_for_groups(dataframe, group)
-    layers = deque(main_layers)
-    layers.extend(confidence_layers)
-
-    figure = graph_objects.Figure(list(layers))
-
+def style_line_graph_figure(figure: graph_objects.Figure, start_year: int) -> None:
+    """Mutate figure to customize styling"""
     figure.update_traces(connectgaps=True)
     figure.update_layout(
-        xaxis={"tickmode": "linear", "tick0": dataframe["year"].min(), "dtick": 1},
+        xaxis={"tickmode": "linear", "tick0": start_year, "dtick": 1},
         yaxis={"tickmode": "linear", "tick0": 0, "dtick": 1},
         hoverlabel=dict(font_size=16, font_family="Rockwell"),
     )
     figure.update_yaxes(showline=True, rangemode="tozero", linewidth=1, linecolor="black")
     figure.update_xaxes(showline=True, linewidth=1, linecolor="black")
+
+
+def create_numerical_figure(
+    dataframe: DataFrame, group: list[str] | None = None
+) -> graph_objects.Figure:
+    """Assemble figure for a numerical time series statistic"""
+    main_traces = []
+    confidence_traces = []
+    if not group:
+        # Make a single DataFrame iterable like a groupby result.
+        # (" ") is passed as grouping names instead of ("")
+        # because plotly will not group traces otherwise
+        dataframe_like_a_groupby = [((" "), dataframe)]
+        main_traces = create_main_trace(dataframe_like_a_groupby)
+        confidence_traces = create_confidence_traces(dataframe_like_a_groupby)
+
+    if group:
+        main_traces, confidence_traces = create_traces_for_groups(dataframe, group)
+    traces = deque(main_traces)
+    traces.extend(confidence_traces)
+
+    figure = graph_objects.Figure(list(traces))
+
+    style_line_graph_figure(figure=figure, start_year=dataframe["year"].min())
 
     return figure
 
@@ -162,7 +140,7 @@ def create_numerical_plot(dataframe, group: str = ""):
 if __name__ == "__main__":
     data = read_csv("../tests/test_data/numerical/years_injob_year_regtyp_sampreg.csv")
 
-    _figure = create_numerical_plot(data, ["sampreg", "regtyp"])
+    _figure = create_numerical_figure(data, ["sampreg", "regtyp"])
     _figure.show()
 
 # %%
