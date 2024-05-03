@@ -31,6 +31,18 @@ COLOR_PALETTE: tuple[COLOR, ...] = (
 )
 
 
+def y_label_intervals(y_max: int):
+    if y_max <= 20:
+        return 1
+    if y_max <= 50:
+        return 5
+    if y_max <= 200:
+        return 10
+    if y_max <= 500:
+        return 50
+    return 100
+
+
 def get_colors_from_palette() -> Generator[COLOR, None, None]:
     """Returns all colors of the color palette, then starts over to return duplicates
 

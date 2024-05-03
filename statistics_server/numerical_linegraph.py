@@ -10,7 +10,8 @@ from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
 from statistics_server.layout import (PLOT_LANGUAGE_LABELS,
-                                      get_colors_from_palette)
+                                      get_colors_from_palette,
+                                      y_label_intervals)
 from statistics_server.types import (CentralMeasure, EmptyIterator,
                                      ScatterPlotGenerator)
 
@@ -107,19 +108,21 @@ def create_confidence_traces(
         )
 
 
-def style_line_graph_figure(figure: graph_objects.Figure, start_year: int) -> None:
+def style_line_graph_figure(
+    figure: graph_objects.Figure, start_year: int, y_max: int
+) -> None:
     """Mutate figure to customize styling"""
     figure.update_traces(connectgaps=True)
     figure.update_layout(
         xaxis={"tickmode": "linear", "tick0": start_year, "dtick": 1},
-        yaxis={"tickmode": "linear", "tick0": 0, "dtick": 1},
+        yaxis={"tickmode": "linear", "tick0": 0, "dtick": y_label_intervals(y_max)},
         hoverlabel=dict(font_size=16, font_family="Rockwell"),
     )
     figure.update_yaxes(showline=True, rangemode="tozero", linewidth=1, linecolor="black")
     figure.update_xaxes(showline=True, linewidth=1, linecolor="black")
 
 
-def create_numerical_figure(
+def create_numerical_linegraph_figure(
     dataframe: DataFrame,
     group: list[str] | None = None,
     show_confidence: bool = True,
@@ -148,7 +151,11 @@ def create_numerical_figure(
 
     figure = graph_objects.Figure(list(traces))
 
-    style_line_graph_figure(figure=figure, start_year=dataframe["year"].min())
+    style_line_graph_figure(
+        figure=figure,
+        start_year=dataframe["year"].min(),
+        y_max=dataframe[central_measure].max(),
+    )
 
     return figure
 
@@ -156,7 +163,9 @@ def create_numerical_figure(
 if __name__ == "__main__":
     data = read_csv("../tests/test_data/numerical/years_injob_year_regtyp_sampreg.csv")
 
-    _figure = create_numerical_figure(
+    _figure = create_numerical_linegraph_figure(
         data, ["sampreg", "regtyp"], central_measure="median"
     )
     _figure.show()
+
+# %%
