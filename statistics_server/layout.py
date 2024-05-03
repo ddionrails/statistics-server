@@ -3,6 +3,9 @@
 from typing import Generator, Literal, Union
 
 from dash import dcc
+from plotly.graph_objects import Figure
+
+from statistics_server.types import PlotType
 
 type COLOR = str
 
@@ -96,3 +99,18 @@ def grouping_dropdown(metadata, element_id, exclude_value=None, language="en"):
             continue
         options.append({"label": group[label], "value": group["variable"]})
     return dcc.Dropdown(options=options, value=default["value"], id=element_id)
+
+
+def style_numeric_figure(
+    figure: Figure, start_year: int, y_max: int, plot_type: PlotType
+) -> None:
+    """Mutate figure to customize styling"""
+    if plot_type == "line":
+        figure.update_traces(connectgaps=True)
+    figure.update_layout(
+        xaxis={"tickmode": "linear", "tick0": start_year, "dtick": 1},
+        yaxis={"tickmode": "linear", "tick0": 0, "dtick": y_label_intervals(y_max)},
+        hoverlabel=dict(font_size=16, font_family="Rockwell"),
+    )
+    figure.update_yaxes(showline=True, rangemode="tozero", linewidth=1, linecolor="black")
+    figure.update_xaxes(showline=True, linewidth=1, linecolor="black")
