@@ -11,17 +11,21 @@ from plotly import graph_objects
 
 from statistics_server.layout import (PLOT_LANGUAGE_LABELS,
                                       get_colors_from_palette)
-from statistics_server.types import EmptyIterator, ScatterPlotGenerator
+from statistics_server.types import (CentralMeasure, EmptyIterator,
+                                     ScatterPlotGenerator)
 
 
 def create_traces_for_groups(
-    dataframe: DataFrame, group_names: list[str], show_confidence: bool = True
+    dataframe: DataFrame,
+    group_names: list[str],
+    show_confidence: bool = True,
+    measure: CentralMeasure = "mean",
 ) -> tuple[ScatterPlotGenerator, ScatterPlotGenerator | Iterable]:
     groups = dataframe.groupby(group_names)
-    main_traces = create_main_trace(groups)
+    main_traces = create_main_trace(groups, measure=measure)
     confidence_traces = EmptyIterator
     if show_confidence:
-        confidence_traces = create_confidence_traces(groups)
+        confidence_traces = create_confidence_traces(groups, measure=measure)
 
     return main_traces, confidence_traces
 
@@ -41,7 +45,7 @@ def numerical_tooltip_formatting(
 
 
 def create_main_trace(
-    groups: DataFrameGroupBy | Iterable,
+    groups: DataFrameGroupBy | Iterable, measure: CentralMeasure = "mean"
 ) -> ScatterPlotGenerator:
     """Create lines for all groups in a line graph"""
     color_palette = get_colors_from_palette()
@@ -50,25 +54,27 @@ def create_main_trace(
         yield graph_objects.Scatter(
             name=grouping_name,
             x=grouped_data["year"],
-            y=grouped_data["mean"],
+            y=grouped_data[measure],
             text=list(
                 numerical_tooltip_formatting(
                     grouped_data["n"],
-                    grouped_data["mean_lower_confidence"],
-                    grouped_data["mean_upper_confidence"],
+                    grouped_data[f"{measure}_lower_confidence"],
+                    grouped_data[f"{measure}_upper_confidence"],
                 )
             ),
             mode="lines+markers",
             line={"color": next(color_palette)},
             marker={"size": 5, "line": {"width": 2}},
-            hovertemplate="Year: %{x}<br>Mean: %{y:.2f}<br>%{text}",
+            hovertemplate="Year: %{x}<br>"
+            + measure.capitalize()
+            + ": %{y:.2f}<br>%{text}",
             legendgroup=grouping_name,
         )
     del color_palette
 
 
 def create_confidence_traces(
-    groups: DataFrameGroupBy | Iterable,
+    groups: DataFrameGroupBy | Iterable, measure: CentralMeasure = "mean"
 ) -> ScatterPlotGenerator:
     """Creates a trace for the upper and lower confidence interval bounds."""
     for grouped_by, grouped_data in groups:
@@ -77,7 +83,7 @@ def create_confidence_traces(
         yield graph_objects.Scatter(
             name=grouping_name,
             x=grouped_data["year"],
-            y=grouped_data["mean_upper_confidence"],
+            y=grouped_data[f"{measure}_upper_confidence"],
             mode="lines",
             marker={"color": "#444"},
             line={"width": 0},
@@ -89,7 +95,7 @@ def create_confidence_traces(
         yield graph_objects.Scatter(
             name=grouping_name,
             x=grouped_data["year"],
-            y=grouped_data["mean_lower_confidence"],
+            y=grouped_data[f"{measure}_lower_confidence"],
             marker={"color": "#444"},
             line={"width": 0},
             mode="lines",
@@ -114,7 +120,10 @@ def style_line_graph_figure(figure: graph_objects.Figure, start_year: int) -> No
 
 
 def create_numerical_figure(
-    dataframe: DataFrame, group: list[str] | None = None, show_confidence: bool = True
+    dataframe: DataFrame,
+    group: list[str] | None = None,
+    show_confidence: bool = True,
+    central_measure: CentralMeasure = "mean",
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
     main_traces = EmptyIterator
@@ -126,11 +135,13 @@ def create_numerical_figure(
         dataframe_like_a_groupby = [((" "), dataframe)]
         main_traces = create_main_trace(dataframe_like_a_groupby)
         if show_confidence:
-            confidence_traces = create_confidence_traces(dataframe_like_a_groupby)
+            confidence_traces = create_confidence_traces(
+                dataframe_like_a_groupby, measure=central_measure
+            )
 
     if group:
         main_traces, confidence_traces = create_traces_for_groups(
-            dataframe, group, show_confidence
+            dataframe, group, show_confidence, measure=central_measure
         )
     traces = deque(main_traces)
     traces.extend(confidence_traces)
@@ -145,7 +156,7 @@ def create_numerical_figure(
 if __name__ == "__main__":
     data = read_csv("../tests/test_data/numerical/years_injob_year_regtyp_sampreg.csv")
 
-    _figure = create_numerical_figure(data, ["sampreg", "regtyp"])
+    _figure = create_numerical_figure(
+        data, ["sampreg", "regtyp"], central_measure="median"
+    )
     _figure.show()
-
-# %%
