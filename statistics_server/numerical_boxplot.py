@@ -1,3 +1,5 @@
+"""Boxplot generation factories."""
+
 # %%
 from collections import deque
 from typing import Generator, Iterable

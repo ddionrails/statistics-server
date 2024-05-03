@@ -1,4 +1,4 @@
-"""Plot generation factories."""
+"""Line graph generation factories."""
 
 # %% TODO: This is experimental discovery of plotly functions not prod. code
 
@@ -16,7 +16,7 @@ from statistics_server.types import (CentralMeasure, EmptyIterator,
                                      ScatterPlotGenerator)
 
 
-def create_traces_for_groups(
+def create_traces(
     dataframe: DataFrame,
     group_names: list[str],
     show_confidence: bool = True,
@@ -26,7 +26,7 @@ def create_traces_for_groups(
     main_traces = create_main_trace(groups, measure=measure)
     confidence_traces = EmptyIterator
     if show_confidence:
-        confidence_traces = create_confidence_traces(groups, measure=measure)
+        confidence_traces = create_confidence_trace_pairs(groups, measure=measure)
 
     return main_traces, confidence_traces
 
@@ -74,7 +74,7 @@ def create_main_trace(
     del color_palette
 
 
-def create_confidence_traces(
+def create_confidence_trace_pairs(
     groups: DataFrameGroupBy | Iterable, measure: CentralMeasure = "mean"
 ) -> ScatterPlotGenerator:
     """Creates a trace for the upper and lower confidence interval bounds."""
@@ -124,12 +124,12 @@ def create_numerical_linegraph_figure(
         dataframe_like_a_groupby = [((" "), dataframe)]
         main_traces = create_main_trace(dataframe_like_a_groupby)
         if show_confidence:
-            confidence_traces = create_confidence_traces(
+            confidence_traces = create_confidence_trace_pairs(
                 dataframe_like_a_groupby, measure=central_measure
             )
 
     if group:
-        main_traces, confidence_traces = create_traces_for_groups(
+        main_traces, confidence_traces = create_traces(
             dataframe, group, show_confidence, measure=central_measure
         )
     traces = deque(main_traces)
