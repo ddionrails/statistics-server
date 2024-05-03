@@ -9,7 +9,7 @@ from pandas import DataFrame, Series, read_csv
 from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
-COLORS = [
+COLOR_PALETTE = (
     "rgb(255, 194, 10)",
     "rgb(12, 123, 220)",
     "rgb(243, 203, 166)",
@@ -26,7 +26,12 @@ COLORS = [
     "rgb(234, 88, 74)",
     "rgb(244, 186, 35)",
     "rgb(160, 22, 102)",
-]
+    "rgb(175, 31, 83)",
+    "rgb(59, 66, 156)",
+    "rgb(157, 159, 9)",
+    "rgb(199, 161, 75)",
+    "rgb(175, 186, 123)",
+)
 
 LANGUAGE_LABELS = {
     "en": {
@@ -42,7 +47,7 @@ LANGUAGE_LABELS = {
 
 def get_color():
     while True:
-        for color in COLORS:
+        for color in COLOR_PALETTE:
             yield color
 
 
