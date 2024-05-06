@@ -10,7 +10,7 @@ from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
 from statistics_server.layout import (PLOT_LANGUAGE_LABELS,
-                                      get_colors_from_palette,
+                                      get_colors_from_palette, get_line_types,
                                       style_numeric_figure)
 from statistics_server.types import (CentralMeasure, EmptyIterator,
                                      ScatterPlotGenerator)
@@ -50,6 +50,7 @@ def create_main_trace(
 ) -> ScatterPlotGenerator:
     """Create lines for all groups in a line graph"""
     color_palette = get_colors_from_palette()
+    line_types = get_line_types()
     for grouped_by, grouped_data in groups:
         grouping_name = " ".join(grouped_by)
         yield graph_objects.Scatter(
@@ -64,7 +65,7 @@ def create_main_trace(
                 )
             ),
             mode="lines+markers",
-            line={"color": next(color_palette)},
+            line={"color": next(color_palette), "dash": next(line_types)},
             marker={"size": 5, "line": {"width": 2}},
             hovertemplate="Year: %{x}<br>"
             + measure.capitalize()

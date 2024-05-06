@@ -1,5 +1,6 @@
 """Modular assembling of html layout."""
 
+from enum import Enum
 from typing import Generator, Literal, Union
 
 from dash import dcc
@@ -33,6 +34,33 @@ COLOR_PALETTE: tuple[COLOR, ...] = (
     "rgb(175, 186, 123)",
 )
 
+type LineType = (
+    Literal["solid"]
+    | Literal["dot"]
+    | Literal["dash"]
+    | Literal["longdash"]
+    | Literal["dashdot"]
+    | Literal["longdashdot"]
+)
+
+LINE_TYPES: tuple[LineType, ...] = (
+    "solid",
+    "dot",
+    "dash",
+    "longdash",
+    "dashdot",
+    "longdashdot",
+)
+
+
+class LineTypes(Enum):
+    solid = 1
+    dot = 2
+    dash = 3
+    longdash = 4
+    dashdot = 5
+    longdashdot = 6
+
 
 def y_label_intervals(y_max: int):
     if y_max <= 20:
@@ -56,6 +84,13 @@ def get_colors_from_palette() -> Generator[COLOR, None, None]:
     while True:
         for color in COLOR_PALETTE:
             yield color
+
+
+def get_line_types() -> Generator[LineType, None, None]:
+    """Returns and repeats all possible plotly line types."""
+    while True:
+        for line_type in LINE_TYPES:
+            yield line_type
 
 
 LABEL_KEY: dict[str, Union[Literal["label"], Literal["label_de"]]] = {
