@@ -137,15 +137,27 @@ def grouping_dropdown(metadata, element_id, exclude_value=None, language="en"):
 
 
 def style_numeric_figure(
-    figure: Figure, start_year: int, y_max: int, plot_type: PlotType
+    figure: Figure,
+    start_year: int,
+    y_max: int,
+    plot_type: PlotType,
+    measure="mean",
 ) -> None:
     """Mutate figure to customize styling"""
     if plot_type == "line":
         figure.update_traces(connectgaps=True)
+    yaxis_layout = {"tickmode": "linear", "tick0": 0}
+    if measure in ("mean", "median"):
+        yaxis_layout["dtick"] = y_label_intervals(y_max)
+    if measure == "proportion":
+        yaxis_layout["tickformat"] = ",.0%"
+        yaxis_layout["dtick"] = 0.05  # [number / 100 for number in range(0, 100, 5)]
+
     figure.update_layout(
         xaxis={"tickmode": "linear", "tick0": start_year, "dtick": 1},
-        yaxis={"tickmode": "linear", "tick0": 0, "dtick": y_label_intervals(y_max)},
+        yaxis=yaxis_layout,
         hoverlabel=dict(font_size=16, font_family="Rockwell"),
     )
+
     figure.update_yaxes(showline=True, rangemode="tozero", linewidth=1, linecolor="black")
     figure.update_xaxes(showline=True, linewidth=1, linecolor="black")

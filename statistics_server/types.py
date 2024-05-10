@@ -5,7 +5,7 @@ from plotly.graph_objects import Scatter
 
 type ScatterPlotGenerator = Generator[Scatter, None, None]
 
-type CentralMeasure = Literal["mean"] | Literal["median"]
+type Measure = Literal["mean"] | Literal["median"] | Literal["proportion"]
 
 
 class EmptyIterator(Enum):
