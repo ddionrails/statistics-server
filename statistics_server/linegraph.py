@@ -125,7 +125,7 @@ def create_confidence_trace_pairs(
         )
 
 
-def create_numerical_linegraph_figure(
+def create_linegraph_figure(
     dataframe: DataFrame,
     group: list[str] | None = None,
     show_confidence: bool = True,
@@ -168,9 +168,7 @@ def create_numerical_linegraph_figure(
 if __name__ == "__main__":
     data = read_csv("../tests/test_data/categorical/rentown_year_sampreg.csv")
 
-    _figure = create_numerical_linegraph_figure(
-        data, ["rentown", "sampreg"], measure="proportion"
-    )
+    _figure = create_linegraph_figure(data, ["rentown", "sampreg"], measure="proportion")
     _figure.show()
 
 # %%
