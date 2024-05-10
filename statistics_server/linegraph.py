@@ -9,11 +9,19 @@ from pandas import DataFrame, Series, read_csv
 from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
-from statistics_server.layout import (PLOT_LANGUAGE_LABELS,
-                                      get_colors_from_palette, get_line_types,
-                                      style_numeric_figure)
-from statistics_server.types import (EmptyIterator, Measure,
-                                     ScatterPlotGenerator)
+from statistics_server.layout import (
+    PLOT_LANGUAGE_LABELS,
+    get_colors_from_palette,
+    get_line_types,
+    style_numeric_figure,
+)
+from statistics_server.types import (
+    BarPlotGenerator,
+    EmptyIterator,
+    Measure,
+    PlotType,
+    ScatterPlotGenerator,
+)
 
 
 def create_traces(
@@ -21,9 +29,13 @@ def create_traces(
     group_names: list[str],
     show_confidence: bool = True,
     measure: Measure = "mean",
-) -> tuple[ScatterPlotGenerator, ScatterPlotGenerator | Iterable]:
+    plot_type: PlotType = "line",
+) -> tuple[ScatterPlotGenerator | BarPlotGenerator, ScatterPlotGenerator | Iterable]:
     groups = dataframe.groupby(group_names)
-    main_traces = create_main_trace(groups, measure=measure)
+    if plot_type == "bar":
+        main_traces = create_main_trace_bar(groups, measure=measure)
+    else:
+        main_traces = create_main_trace(groups, measure=measure)
     confidence_traces = EmptyIterator
     if show_confidence:
         confidence_traces = create_confidence_trace_pairs(groups, measure=measure)
@@ -57,6 +69,33 @@ def numerical_tooltip_formatting(
             "<br>"
             f"{labels['upper_confidence']}: {upper:.2f}"
         )
+
+
+def create_main_trace_bar(
+    groups: DataFrameGroupBy | Iterable, measure: Measure = "proportion"
+) -> BarPlotGenerator:
+    """Create lines for all groups in a line graph"""
+    color_palette = get_colors_from_palette()
+    measure_formatter = ": %{y:.2%}<br>%{text}"
+    for grouped_by, grouped_data in groups:
+        grouping_name = " ".join(grouped_by)
+        yield graph_objects.Bar(
+            name=grouping_name,
+            x=grouped_data["year"],
+            y=grouped_data[measure],
+            text=list(
+                numerical_tooltip_formatting(
+                    grouped_data["n"],
+                    grouped_data[f"{measure}_lower_confidence"],
+                    grouped_data[f"{measure}_upper_confidence"],
+                    measure=measure,
+                )
+            ),
+            hovertemplate="Year: %{x}<br>" + measure.capitalize() + measure_formatter,
+            textposition="none",
+            legendgroup=grouping_name,
+        )
+    del color_palette
 
 
 def create_main_trace(
@@ -165,10 +204,45 @@ def create_linegraph_figure(
     return figure
 
 
+def create_bar_graph_figure(
+    dataframe: DataFrame,
+    group: list[str] | None = None,
+    measure: Measure = "mean",
+) -> graph_objects.Figure:
+    """Assemble figure for a numerical time series statistic"""
+    main_traces = EmptyIterator
+    confidence_traces = EmptyIterator
+    if not group:
+        # Make a single DataFrame iterable like a groupby result.
+        # (" ") is passed as grouping names instead of ("")
+        # because plotly will not group traces otherwise
+        dataframe_like_a_groupby = [((" "), dataframe)]
+        main_traces = create_main_trace_bar(dataframe_like_a_groupby, measure=measure)
+
+    if group:
+        main_traces, confidence_traces = create_traces(
+            dataframe, group, show_confidence=False, measure=measure, plot_type="bar"
+        )
+    traces = deque(main_traces)
+    traces.extend(confidence_traces)
+
+    figure = graph_objects.Figure(list(traces))
+
+    style_numeric_figure(
+        figure=figure,
+        start_year=dataframe["year"].min(),
+        y_max=dataframe[measure].max(),
+        plot_type="bar",
+        measure=measure,
+    )
+
+    return figure
+
+
 if __name__ == "__main__":
     data = read_csv("../tests/test_data/categorical/rentown_year_sampreg.csv")
 
-    _figure = create_linegraph_figure(data, ["rentown", "sampreg"], measure="proportion")
+    _figure = create_bar_graph_figure(data, ["rentown", "sampreg"], measure="proportion")
     _figure.show()
 
 # %%

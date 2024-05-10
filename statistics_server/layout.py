@@ -146,12 +146,15 @@ def style_numeric_figure(
     """Mutate figure to customize styling"""
     if plot_type == "line":
         figure.update_traces(connectgaps=True)
+    if plot_type == "bar":
+        figure.update_layout(barmode="stack")
     yaxis_layout = {"tickmode": "linear", "tick0": 0}
     if measure in ("mean", "median"):
         yaxis_layout["dtick"] = y_label_intervals(y_max)
-    if measure == "proportion":
+    if measure in "proportion":
         yaxis_layout["tickformat"] = ",.0%"
-        yaxis_layout["dtick"] = 0.05  # [number / 100 for number in range(0, 100, 5)]
+        yaxis_layout["dtick"] = 0.10  # [number / 100 for number in range(0, 100, 5)]
+        yaxis_layout["range"] = [0, 1]
 
     figure.update_layout(
         xaxis={"tickmode": "linear", "tick0": start_year, "dtick": 1},
