@@ -1,7 +1,5 @@
 """Builders for numerical and categorical line and bar graphs."""
 
-# %% TODO: This is experimental discovery of plotly functions not prod. code
-
 from collections import deque
 from typing import Generator, Iterable
 
