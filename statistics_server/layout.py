@@ -113,11 +113,18 @@ PLOT_LANGUAGE_LABELS = {
     },
 }
 
+DROPDOWN_PLACEHOLDER = {"en": "Select Group", "de": "Gruppierung Auswählen"}
+
 
 def year_range_slider(start_year: int, end_year: int) -> dcc.Slider:
     """Create a year range Slider."""
-    return dcc.Slider(
-        start_year, end_year, step=1, value=[start_year, end_year], id="year-range-slider"
+    return dcc.RangeSlider(
+        start_year,
+        end_year,
+        step=1,
+        value=[start_year, end_year],
+        marks={year: year for year in range(start_year, end_year + 1)},
+        id="year-range-slider",
     )
 
 
@@ -129,11 +136,16 @@ def grouping_dropdown(metadata, element_id, exclude_value=None, language="en"):
     default = UNSELECTED_VALUE[language]
     options = [default]
 
-    for group in metadata["groups"]:
+    for group in metadata.values():
         if exclude_value == group["variable"]:
             continue
         options.append({"label": group[label], "value": group["variable"]})
-    return dcc.Dropdown(options=options, value=default["value"], id=element_id)
+    return dcc.Dropdown(
+        options=options,
+        value=default["value"],
+        id=element_id,
+        placeholder=DROPDOWN_PLACEHOLDER[language],
+    )
 
 
 def style_numeric_figure(

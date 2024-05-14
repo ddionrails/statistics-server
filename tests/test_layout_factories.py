@@ -4,18 +4,16 @@ from statistics_server.layout import grouping_dropdown, year_range_slider
 
 
 METADATA = {
-    "groups": [
-        {
-            "variable": "some-grouping-variable",
-            "label": "SOMETHING",
-            "label_de": "ETWAS",
-        },
-        {
-            "variable": "some-other-grouping-variable",
-            "label": "SOMETHING ELSE",
-            "label_de": "ETWAS ANDERES",
-        },
-    ]
+    "some-grouping-variable": {
+        "variable": "some-grouping-variable",
+        "label": "SOMETHING",
+        "label_de": "ETWAS",
+    },
+    "some-other-grouping-variable": {
+        "variable": "some-other-grouping-variable",
+        "label": "SOMETHING ELSE",
+        "label_de": "ETWAS ANDERES",
+    },
 }
 
 

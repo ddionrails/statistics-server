@@ -1,5 +1,7 @@
 """Builders for numerical and categorical line and bar graphs."""
 
+# %%
+
 from collections import deque
 from typing import Generator, Iterable
 
@@ -91,6 +93,7 @@ def create_main_trace_bar(
             ),
             hovertemplate="Year: %{x}<br>" + measure.capitalize() + measure_formatter,
             textposition="none",
+            marker_color=next(color_palette),
             legendgroup=grouping_name,
         )
     del color_palette
@@ -238,9 +241,9 @@ def create_bar_graph_figure(
 
 
 if __name__ == "__main__":
-    data = read_csv("../tests/test_data/categorical/rentown_year_sampreg.csv")
+    data = read_csv("../tests/test_data/numerical/years_injob_year_sampreg.csv")
 
-    _figure = create_bar_graph_figure(data, ["rentown", "sampreg"], measure="proportion")
+    _figure = create_linegraph_figure(data, ["sampreg"], measure="mean")
     _figure.show()
 
 # %%

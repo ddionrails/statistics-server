@@ -9,6 +9,7 @@ from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
 from statistics_server.layout import get_colors_from_palette, style_numeric_figure
+from statistics_server.types import EmptyIterator
 
 
 def create_boxplot_traces(
@@ -33,7 +34,7 @@ def create_numerical_boxplot_figure(dataframe, groups: list[str], y_title: str =
 
     start_year = dataframe["year"].min()
 
-    traces = []
+    traces = EmptyIterator
     if groups:
         traces = create_boxplot_traces(dataframe.groupby(groups))
     if not groups:
