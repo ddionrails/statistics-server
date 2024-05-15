@@ -106,7 +106,7 @@ PLOT_LANGUAGE_LABELS = {
 DROPDOWN_PLACEHOLDER = {"en": "Select Group", "de": "Gruppierung Auswählen"}
 
 
-def year_range_slider(start_year: int, end_year: int) -> dcc.Slider:
+def year_range_slider(start_year: int, end_year: int) -> dcc.RangeSlider:
     """Create a year range Slider."""
     return dcc.RangeSlider(
         start_year,
