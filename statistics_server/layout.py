@@ -1,6 +1,5 @@
 """Modular assembling of html layout."""
 
-from enum import Enum
 from typing import Generator, Literal, Union
 
 from dash import dcc
@@ -51,15 +50,6 @@ LINE_TYPES: tuple[LineType, ...] = (
     "dashdot",
     "longdashdot",
 )
-
-
-class LineTypes(Enum):
-    solid = 1
-    dot = 2
-    dash = 3
-    longdash = 4
-    dashdot = 5
-    longdashdot = 6
 
 
 def y_label_intervals(y_max: int):
