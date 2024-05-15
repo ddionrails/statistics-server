@@ -1,0 +1,9 @@
+{
+	"dataset": "h_statistics",
+	"title": "Tenant or owner of dwelling",
+	"label": "Tenant or owner of dwelling",
+	"label_de": "Haushalt lebt in Eigentum oder zur Miete",
+	"variable": "rentown",
+	"start_year": 1984,
+	"end_year": 2021
+}

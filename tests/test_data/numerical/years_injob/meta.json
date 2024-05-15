@@ -1,0 +1,9 @@
+{
+	"dataset": "p_statistics",
+	"title": "Years in current job",
+	"label": "Years in current job",
+	"label_de": "Jahre in aktueller Beschäftigung",
+	"variable": "years_injob",
+	"start_year": 1984,
+	"end_year": 2021
+}
