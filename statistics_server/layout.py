@@ -118,7 +118,9 @@ def year_range_slider(start_year: int, end_year: int) -> dcc.RangeSlider:
     )
 
 
-def grouping_dropdown(metadata, element_id, exclude_value=None, language="en"):
+def grouping_dropdown(
+    metadata, element_id, exclude_value=None, language="en", selected=None
+):
     """Create a dropdown to select a group to group by."""
     if language != "de":
         language = "en"
@@ -130,8 +132,10 @@ def grouping_dropdown(metadata, element_id, exclude_value=None, language="en"):
         if exclude_value == group["variable"]:
             continue
         options.append({"label": group[label], "value": group["variable"]})
+    if selected != default["value"]:
+        default = {"value": selected}
     return dcc.Dropdown(
-        options=options,
+        options,
         value=default["value"],
         id=element_id,
         placeholder=DROPDOWN_PLACEHOLDER[language],
