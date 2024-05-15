@@ -165,7 +165,7 @@ def create_confidence_trace_pairs(
         )
 
 
-def create_linegraph_figure(
+def create_line_graph_figure(
     dataframe: DataFrame,
     group: list[str] | None = None,
     show_confidence: bool = True,
@@ -243,7 +243,7 @@ def create_bar_graph_figure(
 if __name__ == "__main__":
     data = read_csv("../tests/test_data/numerical/years_injob_year_sampreg.csv")
 
-    _figure = create_linegraph_figure(data, ["sampreg"], measure="mean")
+    _figure = create_line_graph_figure(data, ["sampreg"], measure="mean")
     _figure.show()
 
 # %%
