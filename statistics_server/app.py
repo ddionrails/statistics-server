@@ -82,6 +82,7 @@ app.layout = html.Div(
     prevent_initial_call=True,
 )
 def handle_dropdown(first_group, second_group, first_group_options):
+    # TODO: Handle when all dropdowns are deselected
     grouping = []
     if first_group == second_group:
         second_group = None
