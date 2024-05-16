@@ -67,20 +67,25 @@ app.layout = html.Div(
                 ),
             ],
         ),
-        dcc.Checklist(className="control-panel-checkbox", options=["Hide Control Panel"]),
+        dcc.Checklist(id="control-panel-checkbox", options=["Hide Control Panel"]),
     ],
 )
 
 
 @callback(
     Output("graph", "figure"),
+    Output("second-group", "value"),
+    Output("second-group", "options"),
     Input("first-group", "value"),
     Input("second-group", "value"),
-    # Input("outlier-button", "n_clicks"),
+    Input("first-group", "options"),
     prevent_initial_call=True,
 )
-def handle_dropdown(first_group, second_group):
+def handle_dropdown(first_group, second_group, first_group_options):
     grouping = []
+    if first_group == second_group:
+        second_group = None
+
     if first_group:
         grouping.append(first_group)
     if second_group:
@@ -91,7 +96,13 @@ def handle_dropdown(first_group, second_group):
         f"{variable_name}_year_{grouping_string}.csv"
     ).absolute()
     _dataframe = read_csv(data_file)
-    return create_line_graph_figure(_dataframe, group=grouping)
+    options = []
+
+    for option in first_group_options:
+        if option["value"] is not None and option["value"] == first_group:
+            continue
+        options.append(option)
+    return create_line_graph_figure(_dataframe, group=grouping), second_group, options
 
 
 def run():
