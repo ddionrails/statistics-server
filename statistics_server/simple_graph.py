@@ -179,7 +179,7 @@ def create_line_graph_figure(
         # (" ") is passed as grouping names instead of ("")
         # because plotly will not group traces otherwise
         dataframe_like_a_groupby = [((" "), dataframe)]
-        main_traces = create_main_trace(dataframe_like_a_groupby)
+        main_traces = create_main_trace(dataframe_like_a_groupby, measure=measure)
         if show_confidence:
             confidence_traces = create_confidence_trace_pairs(
                 dataframe_like_a_groupby, measure=measure
@@ -241,9 +241,9 @@ def create_bar_graph_figure(
 
 
 if __name__ == "__main__":
-    data = read_csv("../tests/test_data/numerical/years_injob_year_sampreg.csv")
+    data = read_csv("../tests/test_data/numerical/years_injob/years_injob_year.csv")
 
-    _figure = create_line_graph_figure(data, ["sampreg"], measure="mean")
+    _figure = create_line_graph_figure(data, measure="median")
     _figure.show()
 
 # %%
