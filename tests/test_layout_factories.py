@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from statistics_server.layout import grouping_dropdown, year_range_slider
+from statistics_server.layout import create_grouping_dropdown, year_range_slider
 
 
 METADATA = {
@@ -36,7 +36,7 @@ class TestLayoutFabrics(TestCase):
         }
         _id = "first-dropdown"
 
-        dropdown = grouping_dropdown(METADATA, _id)
+        dropdown = create_grouping_dropdown(METADATA, _id)
         self.assertEqual(_id, dropdown.id)
         self.assertIn(expected_unselected, dropdown.options)
         self.assertIn(expected_first_group, dropdown.options)
@@ -51,7 +51,7 @@ class TestLayoutFabrics(TestCase):
         }
         _id = "first-dropdown"
 
-        dropdown = grouping_dropdown(METADATA, _id, language="de")
+        dropdown = create_grouping_dropdown(METADATA, _id, language="de")
         self.assertEqual(_id, dropdown.id)
         self.assertIn(expected_unselected, dropdown.options)
         self.assertIn(expected_first_group, dropdown.options)
@@ -66,7 +66,7 @@ class TestLayoutFabrics(TestCase):
         }
         _id = "first-dropdown"
 
-        dropdown = grouping_dropdown(
+        dropdown = create_grouping_dropdown(
             METADATA, _id, exclude_value=expected_not_in_groups["value"]
         )
         self.assertEqual(_id, dropdown.id)

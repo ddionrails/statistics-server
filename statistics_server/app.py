@@ -7,7 +7,11 @@ from flask import Flask
 from pandas import read_csv
 from plotly.graph_objects import Figure
 
-from statistics_server.layout import grouping_dropdown, year_range_slider
+from statistics_server.layout import (
+    create_grouping_dropdown,
+    create_measure_dropdown,
+    year_range_slider,
+)
 from statistics_server.simple_graph import create_line_graph_figure
 
 # TODO: remove hardcoding
@@ -33,19 +37,20 @@ app.layout = html.Div(
                 html.Div(
                     className="control-panel",
                     children=[
-                        grouping_dropdown(
+                        create_grouping_dropdown(
                             metadata=metadata, element_id="first-group", language="de"
                         ),
                         html.Div(
                             id="second-group-container",
                             children=[
-                                grouping_dropdown(
+                                create_grouping_dropdown(
                                     metadata=metadata,
                                     element_id="second-group",
                                     language="de",
                                 ),
                             ],
                         ),
+                        html.Div(id="measure-dropdown-container"),
                         dcc.Checklist(
                             id="confidence-checkbox",
                             options=[
@@ -92,6 +97,27 @@ def update_range_slider(search):
     )
 
 
+def parse_search(raw_search: str) -> tuple[str, str]:
+    if raw_search[0] == "?":
+        search = raw_search[1:]
+    parsed_search = parse_qs(search)
+    variable_type = parsed_search["type"][0]
+    variable_name = parsed_search["variable"][0]
+    return variable_name, variable_type
+
+
+@callback(
+    Output("measure-dropdown-container", "children"),
+    Input("url", "search"),
+)
+def handle_measure_dropdown(search):
+    _measure_dropdown = None
+    _, variable_type = parse_search(search)
+    if variable_type == "numerical":
+        _measure_dropdown = create_measure_dropdown()
+    return _measure_dropdown
+
+
 @callback(
     Output("graph", "figure"),
     Output("second-group", "value"),
@@ -102,15 +128,18 @@ def update_range_slider(search):
     Input("first-group", "options"),
     Input("confidence-checkbox", "value"),
     Input("year-range-slider", "value"),
+    Input("measure-dropdown", "value"),
 )
 def handle_inputs(
-    search, first_group, second_group, first_group_options, show_confidence, year_range
+    search,
+    first_group,
+    second_group,
+    first_group_options,
+    show_confidence,
+    year_range,
+    measure,
 ):
-    if search[0] == "?":
-        search = search[1:]
-    parsed_search = parse_qs(search)
-    variable_name = parsed_search["variable"][0]
-    variable_type = parsed_search["type"][0]
+    variable_name, variable_type = parse_search(search)
     data_base_path = get_file_names(variable_type, variable_name)
 
     grouping, options = handle_grouping(first_group, second_group, first_group_options)
@@ -120,7 +149,6 @@ def handle_inputs(
     _dataframe = read_csv(data_file)
     _dataframe = _dataframe[_dataframe["year"].between(*year_range)]
 
-    measure = "mean"
     if variable_type == "categorical":
         grouping.append(variable_name)
         measure = "proportion"

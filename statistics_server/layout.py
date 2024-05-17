@@ -87,9 +87,15 @@ LABEL_KEY: dict[str, Union[Literal["label"], Literal["label_de"]]] = {
     "en": "label",
     "de": "label_de",
 }
-UNSELECTED_VALUE = {
-    "en": {"label": "No Grouping", "value": None},
-    "de": {"label": "Keine Gruppierung", "value": None},
+UI_TRANSLATIONS = {
+    "unselected_group": {
+        "en": {"label": "No Grouping", "value": None},
+        "de": {"label": "Keine Gruppierung", "value": None},
+    },
+    "measure_names": {
+        "en": {"mean": "Mean", "median": "Median"},
+        "de": {"mean": "Durchschnitt", "median": "Median"},
+    },
 }
 
 PLOT_LANGUAGE_LABELS = {
@@ -118,14 +124,27 @@ def year_range_slider(start_year: int, end_year: int) -> dcc.RangeSlider:
     )
 
 
-def grouping_dropdown(
+def create_measure_dropdown(language="en"):
+    measure_names = UI_TRANSLATIONS["measure_names"][language]
+    options = [
+        {"value": measure, "label": label} for measure, label in measure_names.items()
+    ]
+
+    return dcc.Dropdown(
+        options,
+        value="mean",
+        id="measure-dropdown",
+    )
+
+
+def create_grouping_dropdown(
     metadata, element_id, exclude_value=None, language="en", selected=None
 ):
     """Create a dropdown to select a group to group by."""
     if language != "de":
         language = "en"
     label = LABEL_KEY[language]
-    default = UNSELECTED_VALUE[language]
+    default = UI_TRANSLATIONS["unselected_group"][language]
     options = [default]
 
     for group in metadata.values():
