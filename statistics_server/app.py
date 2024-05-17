@@ -111,7 +111,7 @@ def parse_search(raw_search: str) -> tuple[str, str]:
     Input("url", "search"),
 )
 def handle_measure_dropdown(search):
-    _measure_dropdown = None
+    _measure_dropdown = html.Div(id="measure-dropdown")
     _, variable_type = parse_search(search)
     if variable_type == "numerical":
         _measure_dropdown = create_measure_dropdown()
@@ -152,6 +152,10 @@ def handle_inputs(
     if variable_type == "categorical":
         grouping.append(variable_name)
         measure = "proportion"
+
+    # TODO: Remove magical values
+    if measure == "":
+        measure = "mean"
 
     return (
         create_line_graph_figure(
