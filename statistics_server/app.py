@@ -1,11 +1,11 @@
 from json import load
 from pathlib import Path
+from urllib.parse import parse_qs
 
 from dash import Dash, Input, Output, callback, dcc, html
-from flask import Flask, request
+from flask import Flask
 from pandas import read_csv
 from plotly.graph_objects import Figure
-from urllib.parse import parse_qs
 
 from statistics_server.layout import grouping_dropdown, year_range_slider
 from statistics_server.simple_graph import create_line_graph_figure
@@ -75,7 +75,7 @@ app.layout = html.Div(
     Output("year-range-slider-container", "children"),
     Input("url", "search"),
 )
-def update_range_slider():
+def update_range_slider(search):
     if search[0] == "?":
         search = search[1:]
     parsed_search = parse_qs(search)
@@ -101,9 +101,10 @@ def update_range_slider():
     Input("second-group", "value"),
     Input("first-group", "options"),
     Input("confidence-checkbox", "value"),
+    Input("year-range-slider", "value"),
 )
 def handle_inputs(
-    search, first_group, second_group, first_group_options, show_confidence
+    search, first_group, second_group, first_group_options, show_confidence, year_range
 ):
     if search[0] == "?":
         search = search[1:]
@@ -117,6 +118,8 @@ def handle_inputs(
         "_".join([variable_name, "year", *grouping]) + ".csv"
     ).absolute()
     _dataframe = read_csv(data_file)
+    _dataframe = _dataframe[_dataframe["year"].between(*year_range)]
+
     measure = "mean"
     if variable_type == "categorical":
         grouping.append(variable_name)
