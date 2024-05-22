@@ -26,6 +26,9 @@ def get_environment_variables():
     return Path(base_path_env_variable).absolute()
 
 
+PLACEHOLDER_MEASURE_DROPDOWN = dcc.Dropdown([MEAN], MEAN, id="measure-dropdown")
+PLACEHOLDER_YEAR_RANGE_SLIDER = dcc.RangeSlider(1, 2, id="year-range-slider")
+
 data_base_path = get_environment_variables()
 group_metadata_file = data_base_path.joinpath("group_metadata.json").absolute()
 
@@ -38,7 +41,10 @@ with open(group_metadata_file, "r", encoding="utf-8") as metadata_file:
 app.layout = html.Div(
     id="outer-container",
     children=[
-        html.Div(id="year-range-slider-container", children=[]),
+        html.Div(
+            id="year-range-slider-container",
+            children=[PLACEHOLDER_YEAR_RANGE_SLIDER],
+        ),
         html.Div(
             id="control-and-graph",
             children=[
@@ -58,7 +64,10 @@ app.layout = html.Div(
                                 ),
                             ],
                         ),
-                        html.Div(id="measure-dropdown-container"),
+                        html.Div(
+                            id="measure-dropdown-container",
+                            children=[PLACEHOLDER_MEASURE_DROPDOWN],
+                        ),
                         dcc.Checklist(
                             id="confidence-checkbox",
                             options=[
@@ -146,7 +155,7 @@ def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
 
 @callback(
     Output("graph", "figure"),
-    Output("first-group", "value"),
+    Output("second-group", "value"),
     Output("second-group", "options"),
     Input("url", "search"),
     Input("first-group", "value"),
@@ -159,29 +168,34 @@ def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
 def handle_inputs(
     search: str,
     first_group_value: str,
-    second_group_value: str,
+    second_group_value: str | None,
     first_group_options: list[PlotlyLabeledOption],
     show_confidence: str,
     year_range: tuple[int, int],
     measure: Measure,
-) -> tuple[Figure, str, list[PlotlyLabeledOption]]:
+) -> tuple[Figure, str | None, list[PlotlyLabeledOption]]:
+    from dash import ctx
+
     variable_name, variable_type = parse_search(search)
     data_base_path = get_variable_data_path(variable_type, variable_name)
 
-    grouping, options = handle_grouping(
+    grouping, options, second_group_value = handle_grouping(
         first_group_value, second_group_value, first_group_options
     )
     data_file = data_base_path.joinpath(
         "_".join([variable_name, YEAR, *grouping]) + ".csv"
     ).absolute()
     _dataframe = read_csv(data_file)
-    _dataframe = _dataframe[_dataframe[YEAR].between(*year_range)]
+
+    if ctx.triggered_id != "url":
+        # Year range slider is not properly initialized when url input triggers
+        _dataframe = _dataframe[_dataframe[YEAR].between(*year_range)]
 
     if variable_type == "categorical":
         grouping.append(variable_name)
         measure = PROPORTION
 
-    if measure == "":
+    if not measure:
         measure = MEAN
 
     return (
@@ -209,7 +223,7 @@ def handle_grouping(
     first_group: str | None,
     second_group: str | None,
     first_group_options: list[PlotlyLabeledOption],
-) -> tuple[list[str], list[PlotlyLabeledOption]]:
+) -> tuple[list[str], list[PlotlyLabeledOption], str | None]:
 
     grouping = []
     if first_group == second_group:
@@ -227,7 +241,7 @@ def handle_grouping(
             continue
         options.append(option)
 
-    return grouping, options
+    return grouping, options, second_group
 
 
 def run() -> None:
