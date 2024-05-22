@@ -1,5 +1,7 @@
 from json import load
+from os import getenv
 from pathlib import Path
+from typing import cast, get_args
 from urllib.parse import parse_qs
 
 from dash import Dash, Input, Output, callback, dcc, html
@@ -12,7 +14,9 @@ from statistics_server.layout import (
     create_measure_dropdown,
     year_range_slider,
 )
+from statistics_server.names import MEAN, PROPORTION, YEAR
 from statistics_server.simple_graph import create_line_graph_figure
+from statistics_server.types import VariableType
 
 # TODO: remove hardcoding
 
@@ -24,8 +28,8 @@ group_metadata_file = data_base_test_path.joinpath("group_metadata.json").absolu
 server = Flask(__name__)
 app = Dash(__name__, server=server)  # type: ignore
 
-with open(group_metadata_file, "r", encoding="utf-8") as file:
-    metadata = load(file)
+with open(group_metadata_file, "r", encoding="utf-8") as metadata_file:
+    metadata = load(metadata_file)
 
 app.layout = html.Div(
     id="outer-container",
@@ -97,12 +101,26 @@ def update_range_slider(search):
     )
 
 
-def parse_search(raw_search: str) -> tuple[str, str]:
+def parse_search(raw_search: str) -> tuple[str, VariableType]:
+    if not raw_search:
+        raise RuntimeError("Incorrect query parameters provided.")
+
     if raw_search[0] == "?":
         search = raw_search[1:]
+
     parsed_search = parse_qs(search)
-    variable_type = parsed_search["type"][0]
+
+    if not ("type" in parsed_search and "variable" in parsed_search):
+        raise RuntimeError("Incorrect query parameters provided.")
+
+    if parsed_search["type"][0] in get_args(
+        VariableType.__value__  # pylint: disable=no-member
+    ):
+        variable_type: VariableType = cast(VariableType, parsed_search["type"][0])
+    else:
+        raise RuntimeError("Non-existent variable type selected.")
     variable_name = parsed_search["variable"][0]
+
     return variable_name, variable_type
 
 
@@ -112,6 +130,7 @@ def parse_search(raw_search: str) -> tuple[str, str]:
 )
 def handle_measure_dropdown(search):
     _measure_dropdown = html.Div(id="measure-dropdown")
+    variable_type: VariableType
     _, variable_type = parse_search(search)
     if variable_type == "numerical":
         _measure_dropdown = create_measure_dropdown()
@@ -144,18 +163,18 @@ def handle_inputs(
 
     grouping, options = handle_grouping(first_group, second_group, first_group_options)
     data_file = data_base_path.joinpath(
-        "_".join([variable_name, "year", *grouping]) + ".csv"
+        "_".join([variable_name, YEAR, *grouping]) + ".csv"
     ).absolute()
     _dataframe = read_csv(data_file)
-    _dataframe = _dataframe[_dataframe["year"].between(*year_range)]
+    _dataframe = _dataframe[_dataframe[YEAR].between(*year_range)]
 
     if variable_type == "categorical":
         grouping.append(variable_name)
-        measure = "proportion"
+        measure = PROPORTION
 
     # TODO: Remove magical values
     if measure == "":
-        measure = "mean"
+        measure = MEAN
 
     return (
         create_line_graph_figure(
@@ -200,11 +219,11 @@ def handle_grouping(first_group, second_group, first_group_options):
 
 
 def run():
-    app.run_server(debug=True)
+    app.run(debug=False)
 
 
-application = app.run_server
+application = app.run
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run(debug=False)

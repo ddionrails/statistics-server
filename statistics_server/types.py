@@ -1,16 +1,19 @@
 from enum import Enum
-from typing import Generator, Literal
+from typing import Generator, Literal, TypedDict
 
 from plotly.graph_objects import Bar, Scatter
 
-type ScatterPlotGenerator = Generator[Scatter, None, None]
 type BarPlotGenerator = Generator[Bar, None, None]
-
-type Measure = Literal["mean"] | Literal["median"] | Literal["proportion"]
+type Measure = Literal["mean", "median", "proportion"]
+type PlotType = Literal["line", "box", "bar"]
+type ScatterPlotGenerator = Generator[Scatter, None, None]
+type VariableType = Literal["categorical", "numerical", "numerical"]
 
 
 class EmptyIterator(Enum):
     """Create an empty iterable for typing."""
 
 
-type PlotType = Literal["line"] | Literal["box"] | Literal["bar"]
+class PlotlyLabeledOption(TypedDict):
+    value: str | None
+    label: str
