@@ -18,12 +18,16 @@ from statistics_server.names import MEAN, PROPORTION, YEAR
 from statistics_server.simple_graph import create_line_graph_figure
 from statistics_server.types import VariableType
 
-# TODO: remove hardcoding
 
-data_base_test_path = Path(".").joinpath("tests/test_data/").absolute()
-group_metadata_file = data_base_test_path.joinpath("group_metadata.json").absolute()
+def get_environment_variables():
+    base_path_env_variable = getenv("STATISTICS_BASE_PATH")
+    if not base_path_env_variable:
+        raise EnvironmentError("STATISTICS_BASE_PATH environment variable not set.")
+    return Path(base_path_env_variable).absolute()
 
-# TODO: End remove hardcoding
+
+data_base_path = get_environment_variables()
+group_metadata_file = data_base_path.joinpath("group_metadata.json").absolute()
 
 server = Flask(__name__)
 app = Dash(__name__, server=server)  # type: ignore
@@ -190,11 +194,11 @@ def handle_inputs(
 
 def get_file_names(variable_type, variable_name):
 
-    data_base_path = data_base_test_path.joinpath(
+    variable_data_base_path = data_base_path.joinpath(
         f"{variable_type}/{variable_name}/"
     ).absolute()
 
-    return data_base_path
+    return variable_data_base_path
 
 
 def handle_grouping(first_group, second_group, first_group_options):
