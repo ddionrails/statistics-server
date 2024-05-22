@@ -15,5 +15,7 @@ class EmptyIterator(Enum):
 
 
 class PlotlyLabeledOption(TypedDict):
+    """Single entry of a plotly dropdown."""
+
     value: str | None
     label: str
