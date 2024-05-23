@@ -18,7 +18,8 @@
 }
 
 .graph-container {
-	width: 70vw;
+	min-width: 70vw;
+	flex-grow: 1;
 }
 
 #year-range-slider {

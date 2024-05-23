@@ -1,16 +1,13 @@
 
-window.addEventListener('load', function() {
+window.addEventListener('DOMContentLoaded', function() {
 	let checkbox = document.querySelector("#control-panel-checkbox >* input[type=checkbox]")
-	let graph = this.document.querySelector(".graph-container")
-	let originalWidth = graph.offsetWidth / window.innerWidth * 100
 
-	checkbox.addEventListener("change", () => {
+	checkbox.addEventListener("change", (event) => {
+		let checkbox = event.target
 		if (checkbox.checked) {
 			document.querySelector(".control-panel").classList.add("hidden")
-			graph.style.width = "100vw"
 		} else {
 			document.querySelector(".control-panel").classList.remove("hidden")
-			graph.style.width = originalWidth + "vw"
 		}
 	});
 
