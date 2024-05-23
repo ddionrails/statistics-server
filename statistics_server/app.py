@@ -78,6 +78,16 @@ app.layout = html.Div(
                             ],
                             value=["confidence"],
                         ),
+                        dcc.Checklist(
+                            id="legend-checkbox",
+                            options=[
+                                {
+                                    "label": "Show Legend",
+                                    "value": "legend",
+                                },
+                            ],
+                            value=["legend"],
+                        ),
                     ],
                 ),
                 dcc.Graph(
@@ -162,6 +172,7 @@ def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
     Input("second-group", "value"),
     Input("first-group", "options"),
     Input("confidence-checkbox", "value"),
+    Input("legend-checkbox", "value"),
     Input("year-range-slider", "value"),
     Input("measure-dropdown", "value"),
 )
@@ -171,6 +182,7 @@ def handle_inputs(
     second_group_value: str | None,
     first_group_options: list[PlotlyLabeledOption],
     show_confidence: str,
+    show_legend: str,
     year_range: tuple[int, int],
     measure: Measure,
 ) -> tuple[Figure, str | None, list[PlotlyLabeledOption]]:
@@ -203,6 +215,7 @@ def handle_inputs(
             _dataframe,
             group=grouping,
             show_confidence=bool(show_confidence),
+            show_legend=bool(show_legend),
             measure=measure,
         ),
         second_group_value,

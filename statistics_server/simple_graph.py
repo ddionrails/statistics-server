@@ -169,6 +169,7 @@ def create_line_graph_figure(
     dataframe: DataFrame,
     group: list[str] | None = None,
     show_confidence: bool = True,
+    show_legend: bool = True,
     measure: Measure = "mean",
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
@@ -193,6 +194,8 @@ def create_line_graph_figure(
     traces.extend(confidence_traces)
 
     figure = graph_objects.Figure(list(traces))
+    if not show_legend:
+        figure.update_layout(showlegend=False)
 
     style_numeric_figure(
         figure=figure,
@@ -208,6 +211,7 @@ def create_line_graph_figure(
 def create_bar_graph_figure(
     dataframe: DataFrame,
     group: list[str] | None = None,
+    show_legend: bool = True,
     measure: Measure = "mean",
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
@@ -228,6 +232,9 @@ def create_bar_graph_figure(
     traces.extend(confidence_traces)
 
     figure = graph_objects.Figure(list(traces))
+
+    if not show_legend:
+        figure.update_layout(showlegend=False)
 
     style_numeric_figure(
         figure=figure,
