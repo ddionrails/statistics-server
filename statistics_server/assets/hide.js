@@ -1,5 +1,5 @@
 
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('load', function() {
 	let checkbox = document.querySelector("#control-panel-checkbox >* input[type=checkbox]")
 
 	checkbox.addEventListener("change", (event) => {
