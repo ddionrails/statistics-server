@@ -1,10 +1,10 @@
 from json import load
 from os import getenv
 from pathlib import Path
-from typing import cast, get_args
+from typing import Any, cast, get_args
 from urllib.parse import parse_qs
 
-from dash import Dash, Input, Output, callback, dcc, html
+from dash import Dash, Input, Output, callback, ctx, dcc, html
 from flask import Flask
 from pandas import read_csv
 from plotly.graph_objects import Figure
@@ -88,6 +88,8 @@ app.layout = html.Div(
                             ],
                             value=["legend"],
                         ),
+                        html.Button("Download CSV", id="btn-data-download"),
+                        dcc.Download(id="data-download", type="str"),
                     ],
                 ),
                 dcc.Graph(
@@ -164,6 +166,44 @@ def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
 
 
 @callback(
+    Output("data-download", "data"),
+    Input("url", "search"),
+    Input("first-group", "value"),
+    Input("second-group", "value"),
+    Input("first-group", "options"),
+    Input("year-range-slider", "value"),
+    Input("btn-data-download", "n_clicks"),
+)
+def download(
+    search: str,
+    first_group_value: str,
+    second_group_value: str | None,
+    first_group_options: list[PlotlyLabeledOption],
+    year_range: tuple[int, int],
+    _,
+) -> dict[str, Any | None] | None:
+
+    if ctx.triggered_id != "btn-data-download":
+        return None
+    variable_name, variable_type = parse_search(search)
+    data_base_path = get_variable_data_path(variable_type, variable_name)
+
+    grouping, _, second_group_value = handle_grouping(
+        first_group_value, second_group_value, first_group_options
+    )
+    file_name_base = "_".join([variable_name, YEAR, *grouping])
+    data_file = data_base_path.joinpath(file_name_base + ".csv").absolute()
+    _dataframe = read_csv(data_file)
+
+    _dataframe = _dataframe[_dataframe[YEAR].between(*year_range)]
+    download_file_name = (
+        "_".join([file_name_base, *[str(i) for i in year_range]]) + ".csv"
+    )
+
+    return dcc.send_data_frame(_dataframe.to_csv, download_file_name, index=False)
+
+
+@callback(
     Output("graph", "figure"),
     Output("second-group", "value"),
     Output("second-group", "options"),
@@ -186,7 +226,6 @@ def handle_inputs(
     year_range: tuple[int, int],
     measure: Measure,
 ) -> tuple[Figure, str | None, list[PlotlyLabeledOption]]:
-    from dash import ctx
 
     variable_name, variable_type = parse_search(search)
     data_base_path = get_variable_data_path(variable_type, variable_name)

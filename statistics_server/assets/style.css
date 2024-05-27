@@ -36,3 +36,20 @@
 .control-panel>* {
 	margin: 1em;
 }
+
+#btn-data-download {
+  background: #0075ff;
+  border-radius: 5px;
+  border: 0;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 .2em .4em;
+  color: #FFFFFF;
+  height: 3.3em;
+  text-align: center;
+  width: 40%;
+}
+
+#btn-data-download:hover {
+  background-image: linear-gradient(-180deg, #abe2fb, #a3d7ef);
+  color: #000000;
+  transform: translateY(-2px);
+}
