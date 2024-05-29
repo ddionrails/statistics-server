@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, cast, get_args
 from urllib.parse import parse_qs
 
-from dash import Dash, Input, Output, callback, ctx, dcc, html
+from dash import Dash, Input, Output, callback, ctx, dcc, dependencies, html
 from flask import Flask
 from pandas import read_csv
 from plotly.graph_objects import Figure
@@ -207,7 +207,6 @@ def download(
     Output("graph", "figure"),
     Output("second-group", "value"),
     Output("second-group", "options"),
-    Input("url", "search"),
     Input("first-group", "value"),
     Input("second-group", "value"),
     Input("first-group", "options"),
@@ -215,9 +214,10 @@ def download(
     Input("legend-checkbox", "value"),
     Input("year-range-slider", "value"),
     Input("measure-dropdown", "value"),
+    dependencies.State("url", "search"),
+    dependencies.State("graph", "figure"),
 )
 def handle_inputs(
-    search: str,
     first_group_value: str,
     second_group_value: str | None,
     first_group_options: list[PlotlyLabeledOption],
@@ -225,7 +225,15 @@ def handle_inputs(
     show_legend: str,
     year_range: tuple[int, int],
     measure: Measure,
+    search: str,
+    current_graph,
 ) -> tuple[Figure, str | None, list[PlotlyLabeledOption]]:
+
+    trace_visibility = {}
+    if current_graph:
+        trace_visibility = {
+            trace["name"]: trace.get("visible", True) for trace in current_graph["data"]
+        }
 
     variable_name, variable_type = parse_search(search)
     data_base_path = get_variable_data_path(variable_type, variable_name)
@@ -256,6 +264,7 @@ def handle_inputs(
             show_confidence=bool(show_confidence),
             show_legend=bool(show_legend),
             measure=measure,
+            trace_visibility=trace_visibility,
         ),
         second_group_value,
         options,

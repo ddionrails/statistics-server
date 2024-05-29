@@ -30,12 +30,15 @@ def create_traces(
     show_confidence: bool = True,
     measure: Measure = "mean",
     plot_type: PlotType = "line",
+    trace_visibility: dict[str, str] = {},
 ) -> tuple[ScatterPlotGenerator | BarPlotGenerator, ScatterPlotGenerator | Iterable]:
     groups = dataframe.groupby(group_names)
     if plot_type == "bar":
         main_traces = create_main_trace_bar(groups, measure=measure)
     else:
-        main_traces = create_main_trace(groups, measure=measure)
+        main_traces = create_main_trace(
+            groups, measure=measure, trace_visibility=trace_visibility
+        )
     confidence_traces = EmptyIterator
     if show_confidence:
         confidence_traces = create_confidence_trace_pairs(groups, measure=measure)
@@ -100,15 +103,32 @@ def create_main_trace_bar(
 
 
 def create_main_trace(
-    groups: DataFrameGroupBy | Iterable, measure: Measure = "mean"
+    groups: DataFrameGroupBy | Iterable,
+    measure: Measure = "mean",
+    trace_visibility: dict[str, str] = {},
 ) -> ScatterPlotGenerator:
     """Create lines for all groups in a line graph"""
+    print(trace_visibility)
     color_palette = get_colors_from_palette()
     line_types = get_line_types()
     measure_formatter = ": %{y:.2f}<br>%{text}"
     if measure == "proportion":
         measure_formatter = ": %{y:.2%}<br>%{text}"
+    trace_number = 0
     for grouped_by, grouped_data in groups:
+        # TODO: Trace visibility resets for some reason ; FIX
+
+        trace_number += 1
+        visible = None
+        if trace_number > 4:
+            visible = "legendonly"
+
+        group_key = " ".join(grouped_by)
+        if group_key in trace_visibility:
+            visible = trace_visibility[group_key]
+
+        # TODO:
+
         grouping_name = " ".join(grouped_by)
         yield graph_objects.Scatter(
             name=grouping_name,
@@ -127,15 +147,23 @@ def create_main_trace(
             marker={"size": 5, "line": {"width": 2}},
             hovertemplate="Year: %{x}<br>" + measure.capitalize() + measure_formatter,
             legendgroup=grouping_name,
+            visible=visible,
         )
     del color_palette
 
 
 def create_confidence_trace_pairs(
-    groups: DataFrameGroupBy | Iterable, measure: Measure = "mean"
+    groups: DataFrameGroupBy | Iterable,
+    measure: Measure = "mean",
+    trace_visibility: dict[str, str] = {},
 ) -> ScatterPlotGenerator:
     """Creates a trace for the upper and lower confidence interval bounds."""
+    trace_number = 0
     for grouped_by, grouped_data in groups:
+        trace_number += 1
+        visible = None
+        if trace_number > 4:
+            visible = "legendonly"
         grouping_name = " ".join(grouped_by)
 
         yield graph_objects.Scatter(
@@ -148,6 +176,7 @@ def create_confidence_trace_pairs(
             showlegend=False,
             hoverinfo="skip",
             legendgroup=grouping_name,
+            visible=visible,
         )
 
         yield graph_objects.Scatter(
@@ -162,6 +191,7 @@ def create_confidence_trace_pairs(
             showlegend=False,
             hoverinfo="skip",
             legendgroup=grouping_name,
+            visible=visible,
         )
 
 
@@ -171,6 +201,7 @@ def create_line_graph_figure(
     show_confidence: bool = True,
     show_legend: bool = True,
     measure: Measure = "mean",
+    trace_visibility={},
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
     main_traces = EmptyIterator
@@ -180,15 +211,23 @@ def create_line_graph_figure(
         # (" ") is passed as grouping names instead of ("")
         # because plotly will not group traces otherwise
         dataframe_like_a_groupby = [((" "), dataframe)]
-        main_traces = create_main_trace(dataframe_like_a_groupby, measure=measure)
+        main_traces = create_main_trace(
+            dataframe_like_a_groupby, measure=measure, trace_visibility=trace_visibility
+        )
         if show_confidence:
             confidence_traces = create_confidence_trace_pairs(
-                dataframe_like_a_groupby, measure=measure
+                dataframe_like_a_groupby,
+                measure=measure,
+                trace_visibility=trace_visibility,
             )
 
     if group:
         main_traces, confidence_traces = create_traces(
-            dataframe, group, show_confidence, measure=measure
+            dataframe,
+            group,
+            show_confidence,
+            measure=measure,
+            trace_visibility=trace_visibility,
         )
     traces = deque(main_traces)
     traces.extend(confidence_traces)

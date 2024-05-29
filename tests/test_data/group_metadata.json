@@ -1,4 +1,67 @@
 {
+    "regtyp": {
+        "variable": "regtyp",
+        "label": "Urban/rural regions",
+        "label_de": "Siedlungsstruktureller Regionsgrundtyp des BBSR",
+        "values": [
+            1,
+            2
+        ],
+        "value_labels": [
+            "Urban regions",
+            "Rural regions"
+        ],
+        "value_labels_de": [
+            "Staedtischer Raum",
+            "Laendlicher Raum"
+        ]
+    },
+    "sampreg": {
+        "variable": "sampreg",
+        "label": "East-/ West Germany",
+        "label_de": "Ost-/Westdeutschland",
+        "values": [
+            1,
+            2
+        ],
+        "value_labels": [
+            "West",
+            "East"
+        ],
+        "value_labels_de": [
+            "West",
+            "Ost"
+        ]
+    },
+    "hhtyp": {
+        "variable": "hhtyp",
+        "label": "Household Typology",
+        "label_de": "Haushaltstyp",
+        "values": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+        ],
+        "value_labels": [
+            "Single-person household",
+            "Couple without children",
+            "Single parent",
+            "Couple with children",
+            "Multi-generational household",
+            "Other Combinations"
+        ],
+        "value_labels_de": [
+            "Einpersonenhaushalt",
+            "Paar ohne Kinder",
+            "Alleinerziehend",
+            "Paar mit Kindern",
+            "Mehrgenerationenhaushalt",
+            "Andere Zusammenstellungen"
+        ]
+    },
     "age_gr": {
         "variable": "age_gr",
         "label": "Age groups",
@@ -157,40 +220,6 @@
             "3. Quintil",
             "4. Quintil",
             "5. Quintil"
-        ]
-    },
-    "regtyp": {
-        "variable": "regtyp",
-        "label": "Urban/rural regions",
-        "label_de": "Siedlungsstruktureller Regionsgrundtyp des BBSR",
-        "values": [
-            1,
-            2
-        ],
-        "value_labels": [
-            "Urban regions",
-            "Rural regions"
-        ],
-        "value_labels_de": [
-            "Staedtischer Raum",
-            "Laendlicher Raum"
-        ]
-    },
-    "sampreg": {
-        "variable": "sampreg",
-        "label": "East-/ West Germany",
-        "label_de": "Aktueller Wohnort (BRD/DDR - in Bezug auf Grenzen von 1989)",
-        "values": [
-            1,
-            2
-        ],
-        "value_labels": [
-            "West",
-            "East"
-        ],
-        "value_labels_de": [
-            "Westdeutschland, alte Bundeslaender",
-            "Ostdeutschland, neue Bundeslaender"
         ]
     },
     "sex": {
