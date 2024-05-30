@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, cast, get_args
 from urllib.parse import parse_qs
 
-from dash import Dash, Input, Output, callback, ctx, dcc, dependencies, html
+from dash import Dash, Input, Output, callback, dcc, dependencies, html
 from flask import Flask
 from pandas import read_csv
 from plotly.graph_objects import Figure
@@ -167,12 +167,13 @@ def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
 
 @callback(
     Output("data-download", "data"),
-    Input("url", "search"),
-    Input("first-group", "value"),
-    Input("second-group", "value"),
-    Input("first-group", "options"),
-    Input("year-range-slider", "value"),
+    dependencies.State("url", "search"),
+    dependencies.State("first-group", "value"),
+    dependencies.State("second-group", "value"),
+    dependencies.State("first-group", "options"),
+    dependencies.State("year-range-slider", "value"),
     Input("btn-data-download", "n_clicks"),
+    prevent_initial_call=True,
 )
 def download(
     search: str,
@@ -183,8 +184,6 @@ def download(
     _,
 ) -> dict[str, Any | None] | None:
 
-    if ctx.triggered_id != "btn-data-download":
-        return None
     variable_name, variable_type = parse_search(search)
     data_base_path = get_variable_data_path(variable_type, variable_name)
 
@@ -196,6 +195,7 @@ def download(
     _dataframe = read_csv(data_file)
 
     _dataframe = _dataframe[_dataframe[YEAR].between(*year_range)]
+
     download_file_name = (
         "_".join([file_name_base, *[str(i) for i in year_range]]) + ".csv"
     )
@@ -246,8 +246,7 @@ def handle_inputs(
     ).absolute()
     _dataframe = read_csv(data_file)
 
-    if ctx.triggered_id != "url":
-        # Year range slider is not properly initialized when url input triggers
+    if year_range:
         _dataframe = _dataframe[_dataframe[YEAR].between(*year_range)]
 
     if variable_type == "categorical":
