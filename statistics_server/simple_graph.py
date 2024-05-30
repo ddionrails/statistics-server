@@ -23,6 +23,32 @@ from statistics_server.types import (
     ScatterPlotGenerator,
 )
 
+DEFAULT_MAX_VISIBLE_TRACES = 4
+
+
+def visibility_handler(
+    trace_visibility: dict[str, str]
+) -> Generator[str | bool | None, str, None]:
+    """Manage visible traces
+
+    Make all but the first x traces invisible except when
+    visibility changes were made manually.
+    """
+    visible = True
+    for _ in range(0, DEFAULT_MAX_VISIBLE_TRACES):
+        group_key = yield
+        visible = True
+        if group_key in trace_visibility:
+            visible = trace_visibility[group_key]
+        yield visible
+
+    while True:
+        visible = "legendonly"
+        yield group_key
+        if group_key in trace_visibility:
+            visible = trace_visibility[group_key]
+        yield visible
+
 
 def create_traces(
     dataframe: DataFrame,
@@ -41,7 +67,9 @@ def create_traces(
         )
     confidence_traces = EmptyIterator
     if show_confidence:
-        confidence_traces = create_confidence_trace_pairs(groups, measure=measure)
+        confidence_traces = create_confidence_trace_pairs(
+            groups, measure=measure, trace_visibility=trace_visibility
+        )
 
     return main_traces, confidence_traces
 
@@ -75,15 +103,23 @@ def numerical_tooltip_formatting(
 
 
 def create_main_trace_bar(
-    groups: DataFrameGroupBy | Iterable, measure: Measure = "proportion"
+    groups: DataFrameGroupBy | Iterable,
+    measure: Measure = "proportion",
+    trace_visibility: dict["str", "str"] = {},
 ) -> BarPlotGenerator:
     """Create lines for all groups in a line graph"""
     color_palette = get_colors_from_palette()
     measure_formatter = ": %{y:.2%}<br>%{text}"
+
+    _visibility_handler = visibility_handler(trace_visibility)
+
     for grouped_by, grouped_data in groups:
-        grouping_name = " ".join(grouped_by)
+        group_key = " ".join(grouped_by)
+        next(_visibility_handler)
+        visible = _visibility_handler.send(group_key)
+
         yield graph_objects.Bar(
-            name=grouping_name,
+            name=group_key,
             x=grouped_data["year"],
             y=grouped_data[measure],
             text=list(
@@ -97,7 +133,8 @@ def create_main_trace_bar(
             hovertemplate="Year: %{x}<br>" + measure.capitalize() + measure_formatter,
             textposition="none",
             marker_color=next(color_palette),
-            legendgroup=grouping_name,
+            legendgroup=group_key,
+            visible=visible,
         )
     del color_palette
 
@@ -108,30 +145,21 @@ def create_main_trace(
     trace_visibility: dict[str, str] = {},
 ) -> ScatterPlotGenerator:
     """Create lines for all groups in a line graph"""
-    print(trace_visibility)
     color_palette = get_colors_from_palette()
     line_types = get_line_types()
     measure_formatter = ": %{y:.2f}<br>%{text}"
     if measure == "proportion":
         measure_formatter = ": %{y:.2%}<br>%{text}"
-    trace_number = 0
+
+    _visibility_handler = visibility_handler(trace_visibility)
+
     for grouped_by, grouped_data in groups:
-        # TODO: Trace visibility resets for some reason ; FIX
-
-        trace_number += 1
-        visible = None
-        if trace_number > 4:
-            visible = "legendonly"
-
         group_key = " ".join(grouped_by)
-        if group_key in trace_visibility:
-            visible = trace_visibility[group_key]
+        next(_visibility_handler)
+        visible = _visibility_handler.send(group_key)
 
-        # TODO:
-
-        grouping_name = " ".join(grouped_by)
         yield graph_objects.Scatter(
-            name=grouping_name,
+            name=group_key,
             x=grouped_data["year"],
             y=grouped_data[measure],
             text=list(
@@ -146,9 +174,10 @@ def create_main_trace(
             line={"color": next(color_palette), "dash": next(line_types)},
             marker={"size": 5, "line": {"width": 2}},
             hovertemplate="Year: %{x}<br>" + measure.capitalize() + measure_formatter,
-            legendgroup=grouping_name,
+            legendgroup=group_key,
             visible=visible,
         )
+    del _visibility_handler
     del color_palette
 
 
@@ -158,16 +187,14 @@ def create_confidence_trace_pairs(
     trace_visibility: dict[str, str] = {},
 ) -> ScatterPlotGenerator:
     """Creates a trace for the upper and lower confidence interval bounds."""
-    trace_number = 0
+    _visibility_handler = visibility_handler(trace_visibility)
     for grouped_by, grouped_data in groups:
-        trace_number += 1
-        visible = None
-        if trace_number > 4:
-            visible = "legendonly"
-        grouping_name = " ".join(grouped_by)
+        group_key = " ".join(grouped_by)
+        next(_visibility_handler)
+        visible = _visibility_handler.send(group_key)
 
         yield graph_objects.Scatter(
-            name=grouping_name,
+            name=group_key,
             x=grouped_data["year"],
             y=grouped_data[f"{measure}_upper_confidence"],
             mode="lines",
@@ -175,12 +202,12 @@ def create_confidence_trace_pairs(
             line={"width": 0},
             showlegend=False,
             hoverinfo="skip",
-            legendgroup=grouping_name,
+            legendgroup=group_key,
             visible=visible,
         )
 
         yield graph_objects.Scatter(
-            name=grouping_name,
+            name=group_key,
             x=grouped_data["year"],
             y=grouped_data[f"{measure}_lower_confidence"],
             marker={"color": "#444"},
@@ -190,9 +217,10 @@ def create_confidence_trace_pairs(
             fill="tonexty",
             showlegend=False,
             hoverinfo="skip",
-            legendgroup=grouping_name,
+            legendgroup=group_key,
             visible=visible,
         )
+    del _visibility_handler
 
 
 def create_line_graph_figure(
