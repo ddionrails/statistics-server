@@ -44,7 +44,7 @@ def visibility_handler(
 
     while True:
         visible = "legendonly"
-        yield group_key
+        group_key = yield
         if group_key in trace_visibility:
             visible = trace_visibility[group_key]
         yield visible
