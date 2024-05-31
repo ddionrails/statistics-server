@@ -111,16 +111,20 @@ def create_main_trace_bar(
     color_palette = get_colors_from_palette()
     measure_formatter = ": %{y:.2%}<br>%{text}"
 
-    _visibility_handler = visibility_handler(trace_visibility)
+    group_color_map = {}
 
     for grouped_by, grouped_data in groups:
-        group_key = " ".join(grouped_by)
-        next(_visibility_handler)
-        visible = _visibility_handler.send(group_key)
+        show_legend = False
+        if grouped_by[-1] not in group_color_map:
+            group_color_map[grouped_by[-1]] = next(color_palette)
+            show_legend = True
 
         yield graph_objects.Bar(
-            name=group_key,
-            x=grouped_data["year"],
+            name=grouped_by[-1],
+            x=[
+                grouped_data["year"],
+                [grouped_by[:-1]] * len(grouped_data["year"]),
+            ],
             y=grouped_data[measure],
             text=list(
                 numerical_tooltip_formatting(
@@ -132,9 +136,9 @@ def create_main_trace_bar(
             ),
             hovertemplate="Year: %{x}<br>" + measure.capitalize() + measure_formatter,
             textposition="none",
-            marker_color=next(color_palette),
-            legendgroup=group_key,
-            visible=visible,
+            marker_color=group_color_map[grouped_by[-1]],
+            legendgroup=grouped_by[-1],
+            showlegend=show_legend,
         )
     del color_palette
 
@@ -310,6 +314,8 @@ def create_bar_graph_figure(
         plot_type="bar",
         measure=measure,
     )
+    # figure.update_layout(xaxis={"showticklabels": False})
+    # figure.update_layout(show_legend={"showticklabels": False})
 
     return figure
 

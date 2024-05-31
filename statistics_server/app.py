@@ -250,6 +250,8 @@ def handle_inputs(
         _dataframe = _dataframe[_dataframe[YEAR].between(*year_range)]
 
     if variable_type == "categorical":
+        # It is currently important that variable name is at the end of the grouping list
+        # for the grouping of the bar plot to work properly.
         grouping.append(variable_name)
         measure = PROPORTION
 
