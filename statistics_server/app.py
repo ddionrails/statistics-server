@@ -19,6 +19,7 @@ from statistics_server.simple_graph import (
     create_bar_graph_figure,
     create_line_graph_figure,
 )
+from statistics_server.numerical_boxplot_graph import create_numerical_boxplot_figure
 from statistics_server.types import Measure, PlotlyLabeledOption, VariableType
 
 
@@ -98,6 +99,17 @@ app.layout = html.Div(
                                 {
                                     "label": "Show Bar Graph",
                                     "value": "bar",
+                                },
+                            ],
+                            value=False,
+                        ),
+                        dcc.Checklist(
+                            id="boxplot-checkbox",
+                            className="hidden",
+                            options=[
+                                {
+                                    "label": "Show Boxplot",
+                                    "value": "boxplot",
                                 },
                             ],
                             value=False,
@@ -229,6 +241,7 @@ def download(
     Input("year-range-slider", "value"),
     Input("measure-dropdown", "value"),
     Input("bargraph-checkbox", "value"),
+    Input("boxplot-checkbox", "value"),
     dependencies.State("url", "search"),
     dependencies.State("graph", "figure"),
 )
@@ -241,6 +254,7 @@ def handle_inputs(
     year_range: tuple[int, int],
     measure: Measure,
     bar_graph: bool,
+    boxplot: bool,
     search: str,
     current_graph,
 ) -> tuple[Figure, str | None, list[PlotlyLabeledOption]]:
@@ -252,12 +266,12 @@ def handle_inputs(
         }
 
     variable_name, variable_type = parse_search(search)
-    data_base_path = get_variable_data_path(variable_type, variable_name)
+    _data_base_path = get_variable_data_path(variable_type, variable_name)
 
     grouping, options, second_group_value = handle_grouping(
         first_group_value, second_group_value, first_group_options
     )
-    data_file = data_base_path.joinpath(
+    data_file = _data_base_path.joinpath(
         "_".join([variable_name, YEAR, *grouping]) + ".csv"
     ).absolute()
     _dataframe = read_csv(data_file)
@@ -281,6 +295,18 @@ def handle_inputs(
                 group=grouping,
                 show_legend=bool(show_legend),
                 measure=measure,
+            ),
+            second_group_value,
+            options,
+        )
+    if boxplot:
+        return (
+            create_numerical_boxplot_figure(
+                _dataframe,
+                groups=grouping,
+                y_title="",
+                show_legend=bool(show_legend),
+                trace_visibility=trace_visibility,
             ),
             second_group_value,
             options,

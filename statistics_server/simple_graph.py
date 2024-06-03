@@ -304,8 +304,7 @@ def create_bar_graph_figure(
 
     figure = graph_objects.Figure(list(traces))
 
-    if not show_legend:
-        figure.update_layout(showlegend=False)
+    figure.update_layout(showlegend=False)
 
     style_numeric_figure(
         figure=figure,

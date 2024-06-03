@@ -21,6 +21,11 @@ if (variableType == "categorical") {
   });
 }
 
+if (variableType == "numerical") {
+  waitForElement("#boxplot-checkbox").then((element) => {
+    element.classList.remove("hidden");
+  });
+}
 
 let checkbox = waitForElement(
   "#control-panel-checkbox >* input[type=checkbox]",
