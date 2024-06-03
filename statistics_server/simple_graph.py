@@ -27,14 +27,14 @@ DEFAULT_MAX_VISIBLE_TRACES = 4
 
 
 def visibility_handler(
-    trace_visibility: dict[str, str]
+    trace_visibility: dict[str, str | bool]
 ) -> Generator[str | bool | None, str, None]:
     """Manage visible traces
 
     Make all but the first x traces invisible except when
     visibility changes were made manually.
     """
-    visible = True
+    visible: str | bool = True
     for _ in range(0, DEFAULT_MAX_VISIBLE_TRACES):
         group_key = yield
         visible = True
@@ -146,7 +146,7 @@ def create_main_trace_bar(
 def create_main_trace(
     groups: DataFrameGroupBy | Iterable,
     measure: Measure = "mean",
-    trace_visibility: dict[str, str] = {},
+    trace_visibility: dict[str, str | bool] = {},
 ) -> ScatterPlotGenerator:
     """Create lines for all groups in a line graph"""
     color_palette = get_colors_from_palette()

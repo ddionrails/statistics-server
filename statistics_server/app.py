@@ -15,7 +15,10 @@ from statistics_server.layout import (
     year_range_slider,
 )
 from statistics_server.names import MEAN, PROPORTION, YEAR
-from statistics_server.simple_graph import create_line_graph_figure
+from statistics_server.simple_graph import (
+    create_bar_graph_figure,
+    create_line_graph_figure,
+)
 from statistics_server.types import Measure, PlotlyLabeledOption, VariableType
 
 
@@ -87,6 +90,17 @@ app.layout = html.Div(
                                 },
                             ],
                             value=["legend"],
+                        ),
+                        dcc.Checklist(
+                            id="bargraph-checkbox",
+                            className="hidden",
+                            options=[
+                                {
+                                    "label": "Show Bar Graph",
+                                    "value": "bar",
+                                },
+                            ],
+                            value=False,
                         ),
                         html.Button("Download CSV", id="btn-data-download"),
                         dcc.Download(id="data-download", type="str"),
@@ -214,6 +228,7 @@ def download(
     Input("legend-checkbox", "value"),
     Input("year-range-slider", "value"),
     Input("measure-dropdown", "value"),
+    Input("bargraph-checkbox", "value"),
     dependencies.State("url", "search"),
     dependencies.State("graph", "figure"),
 )
@@ -225,6 +240,7 @@ def handle_inputs(
     show_legend: str,
     year_range: tuple[int, int],
     measure: Measure,
+    bar_graph: bool,
     search: str,
     current_graph,
 ) -> tuple[Figure, str | None, list[PlotlyLabeledOption]]:
@@ -257,6 +273,18 @@ def handle_inputs(
 
     if not measure:
         measure = MEAN
+
+    if bar_graph:
+        return (
+            create_bar_graph_figure(
+                _dataframe,
+                group=grouping,
+                show_legend=bool(show_legend),
+                measure=measure,
+            ),
+            second_group_value,
+            options,
+        )
 
     return (
         create_line_graph_figure(
