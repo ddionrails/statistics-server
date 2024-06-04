@@ -1,0 +1,24 @@
+en:
+  confidence_interval: >
+    A confidence interval indicates the accuracy of a statistical parameter. 
+    You can think of the confidence interval as an uncertainty range that shows how 
+    certain you are that a value, estimated based on a sample, 
+    is close to the true (population) value. The 95% confidence interval of a mean value, 
+    for example, indicates which range of values encloses the true (population) mean 
+    value with a probability of 95%. 
+    A wide confidence interval indicates greater uncertainty; 
+    it may be due to a small number of observations or indicate 
+    a high dispersion of observations.
+
+de:
+  confidence_interval: >
+    Ein Konfidenzintervall gibt die Genauigkeit eines statistischen Kennwertes an. 
+    Man kann sich das Konfidenzintervall als einen Unsicherheitsbereich vorstellen, 
+    der zeigt, wie sicher man sich ist, dass ein auf der Grundlage einer Stichprobe 
+    geschätzter Wert nahe am wahren (Populations-)Wert liegt.
+    Das 95%-Konfidenzintervall eines Mittelwerts gibt zum Beispiel an,
+    welcher Wertebereich den wahren (Populations-)Mittelwert mit einer Wahrscheinlichkeit 
+    von 95% umschließt. 
+    Ein breites Konfidenzintervall deutet auf eine größere Unsicherheit hin; 
+    es kann auf eine kleine Anzahl von Beobachtungen zurückzuführen sein oder auf
+    eine große Streuung der Beobachtungen hinweisen.

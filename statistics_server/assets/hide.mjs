@@ -1,19 +1,4 @@
-function waitForElement(selector) {
-  return new Promise((resolve) => {
-    const observer = new MutationObserver((mutations) => {
-      if (document.querySelector(selector)) {
-        observer.disconnect();
-        resolve(document.querySelector(selector));
-      }
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  });
-}
-
+import { waitForElement } from "./waitForElement.mjs";
 
 
 let variableType = new URLSearchParams(window.location.search).get("type");

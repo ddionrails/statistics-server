@@ -14,6 +14,7 @@ from statistics_server.layout import (
     create_measure_dropdown,
     year_range_slider,
 )
+from statistics_server.language_handling import get_language_config
 from statistics_server.names import MEAN, PROPORTION, YEAR
 from statistics_server.simple_graph import (
     create_bar_graph_figure,
@@ -21,6 +22,8 @@ from statistics_server.simple_graph import (
 )
 from statistics_server.numerical_boxplot_graph import create_numerical_boxplot_figure
 from statistics_server.types import Measure, PlotlyLabeledOption, VariableType
+
+LANGUAGE_CONFIG = get_language_config()
 
 
 def get_environment_variables():
@@ -72,15 +75,30 @@ app.layout = html.Div(
                             id="measure-dropdown-container",
                             children=[PLACEHOLDER_MEASURE_DROPDOWN],
                         ),
-                        dcc.Checklist(
-                            id="confidence-checkbox",
-                            options=[
-                                {
-                                    "label": "Show Confidence Interval",
-                                    "value": "confidence",
-                                },
+                        html.Div(
+                            id="confidence-container",
+                            children=[
+                                dcc.Checklist(
+                                    id="confidence-checkbox",
+                                    options=[
+                                        {
+                                            "label": "Show Confidence Interval",
+                                            "value": "confidence",
+                                        },
+                                    ],
+                                    value=["confidence"],
+                                ),
+                                html.Button(
+                                    id="confidence-popover-button",
+                                    className="info-icon",
+                                    children=["🛈"],
+                                ),
+                                html.Div(
+                                    id="confidence-popover",
+                                    className="hidden",
+                                    children=[LANGUAGE_CONFIG["confidence_interval"]],
+                                ),
                             ],
-                            value=["confidence"],
                         ),
                         dcc.Checklist(
                             id="legend-checkbox",

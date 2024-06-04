@@ -20,6 +20,7 @@
 .graph-container {
 	min-width: 70vw;
 	flex-grow: 1;
+	min-height: 200px;
 }
 
 #year-range-slider {
@@ -52,4 +53,32 @@
   background-image: linear-gradient(-180deg, #abe2fb, #a3d7ef);
   color: #000000;
   transform: translateY(-2px);
+}
+
+#confidence-container {
+	display: flex;
+	flex-direction: row;
+}
+
+
+#confidence-popover-button {
+	background: none;
+	border: none;
+	color: #0075ff;
+	cursor: help;
+	font-weight: 500;
+	font: inherit;
+	margin-left: .2em;
+	outline: inherit;
+	padding: 0;
+}
+
+#confidence-popover {
+    width: 24em;
+    padding: 2em;
+    margin-top: 6%;
+	margin-bottom: 50%;
+	border-radius: 3px;
+	border-width: 1px;
+	background-image: radial-gradient(circle, rgb(255 255 255) 0%, rgb(235 235 235) 50%, rgb(255 255 255) 100%);
 }
