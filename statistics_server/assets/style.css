@@ -47,12 +47,13 @@
   height: 3.3em;
   text-align: center;
   width: 40%;
+  transition: 400ms ease-in-out;
 }
 
 #btn-data-download:hover {
   background-image: linear-gradient(-180deg, #abe2fb, #a3d7ef);
   color: #000000;
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.05);
 }
 
 #confidence-container {
