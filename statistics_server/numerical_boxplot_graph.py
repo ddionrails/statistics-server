@@ -9,8 +9,8 @@ from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
 from statistics_server.layout import get_colors_from_palette, style_numeric_figure
-from statistics_server.types import EmptyIterator
 from statistics_server.simple_graph import visibility_handler
+from statistics_server.types import EmptyIterator
 
 
 def create_boxplot_traces(

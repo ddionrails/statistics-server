@@ -9,18 +9,18 @@ from flask import Flask
 from pandas import read_csv
 from plotly.graph_objects import Figure
 
+from statistics_server.language_handling import get_language_config
 from statistics_server.layout import (
     create_grouping_dropdown,
     create_measure_dropdown,
     year_range_slider,
 )
-from statistics_server.language_handling import get_language_config
 from statistics_server.names import MEAN, PROPORTION, YEAR
+from statistics_server.numerical_boxplot_graph import create_numerical_boxplot_figure
 from statistics_server.simple_graph import (
     create_bar_graph_figure,
     create_line_graph_figure,
 )
-from statistics_server.numerical_boxplot_graph import create_numerical_boxplot_figure
 from statistics_server.types import Measure, PlotlyLabeledOption, VariableType
 
 LANGUAGE_CONFIG = get_language_config()
