@@ -28,19 +28,20 @@ LANGUAGE_CONFIG = get_language_config()
 
 def get_environment_variables():
     base_path_env_variable = getenv("STATISTICS_BASE_PATH")
+    _url_base_pathname = getenv("URL_BASE_PATHNAME", "/")
     if not base_path_env_variable:
         raise EnvironmentError("STATISTICS_BASE_PATH environment variable not set.")
-    return Path(base_path_env_variable).absolute()
+    return Path(base_path_env_variable).absolute(), _url_base_pathname
 
 
 PLACEHOLDER_MEASURE_DROPDOWN = dcc.Dropdown([MEAN], MEAN, id="measure-dropdown")
 PLACEHOLDER_YEAR_RANGE_SLIDER = dcc.RangeSlider(1, 2, id="year-range-slider")
 
-data_base_path = get_environment_variables()
+data_base_path, url_base_pathname = get_environment_variables()
 group_metadata_file = data_base_path.joinpath("group_metadata.json").absolute()
 
 server = Flask(__name__)
-app = Dash(__name__, server=server)  # type: ignore
+app = Dash(__name__, server=server, url_base_pathname=url_base_pathname)  # type: ignore
 
 with open(group_metadata_file, "r", encoding="utf-8") as metadata_file:
     metadata = load(metadata_file)
