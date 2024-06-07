@@ -1,16 +1,16 @@
-import { waitForElement } from "./waitForElement.mjs";
+import {waitForElement} from "./waitForElement.mjs";
 
 
 let variableType = new URLSearchParams(window.location.search).get("type");
 if (variableType == "categorical") {
   waitForElement("#bargraph-checkbox").then((element) => {
-    element.classList.remove("hidden");
+    element.classList.remove("removed");
   });
 }
 
 if (variableType == "numerical") {
   waitForElement("#boxplot-checkbox").then((element) => {
-    element.classList.remove("hidden");
+    element.classList.remove("removed");
   });
 }
 
