@@ -113,7 +113,7 @@ app.layout = html.Div(
                         ),
                         dcc.Checklist(
                             id="bargraph-checkbox",
-                            className="hidden",
+                            className="removed",
                             options=[
                                 {
                                     "label": "Show Bar Graph",
@@ -124,7 +124,7 @@ app.layout = html.Div(
                         ),
                         dcc.Checklist(
                             id="boxplot-checkbox",
-                            className="hidden",
+                            className="removed",
                             options=[
                                 {
                                     "label": "Show Boxplot",
