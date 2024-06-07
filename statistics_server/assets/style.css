@@ -87,3 +87,11 @@
 	border-width: 1px;
 	background-image: radial-gradient(circle, rgb(255 255 255) 0%, rgb(235 235 235) 50%, rgb(255 255 255) 100%);
 }
+
+
+
+@media screen and (max-width: 1800px) {
+	.rc-slider-mark-text {
+    transform:  translateX(-50%) rotate(45deg) !important;
+    }
+}
