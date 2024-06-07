@@ -20,9 +20,9 @@ waitForElement(
   checkbox.addEventListener("change", (event) => {
     let checkbox = event.target;
     if (checkbox.checked) {
-      document.querySelector(".control-panel").classList.add("hidden");
+      document.querySelector(".control-panel").classList.add("removed");
     } else {
-      document.querySelector(".control-panel").classList.remove("hidden");
+      document.querySelector(".control-panel").classList.remove("removed");
     }
   });
 });
