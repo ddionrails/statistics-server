@@ -188,7 +188,7 @@ def create_main_trace(
 def create_confidence_trace_pairs(
     groups: DataFrameGroupBy | Iterable,
     measure: Measure = "mean",
-    trace_visibility: dict[str, str] = {},
+    trace_visibility: dict[str, str | bool] = {},
 ) -> ScatterPlotGenerator:
     """Creates a trace for the upper and lower confidence interval bounds."""
     _visibility_handler = visibility_handler(trace_visibility)
