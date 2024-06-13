@@ -6,6 +6,9 @@ if (variableType == "categorical") {
   waitForElement("#bargraph-checkbox").then((element) => {
     element.classList.remove("removed");
   });
+  waitForElement("#proportional-data-explanation").then((element) => {
+    element.classList.remove("removed")
+  })
 }
 
 if (variableType == "numerical") {

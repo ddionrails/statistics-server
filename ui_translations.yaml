@@ -9,6 +9,12 @@ en:
     A wide confidence interval indicates greater uncertainty; 
     it may be due to a small number of observations or indicate 
     a high dispersion of observations.
+  proportional_data_explanation: >
+    The percentages add up to 100% within the respective subgroups that you form by
+    selecting the grouping variables. For example, if you group the variable
+    ‘Employment Level of Individual’ by ‘Gender’ and by ‘Federal state’,
+    the percentages of the three options ‘Full Time’, ‘Part Time’ and ‘Not working’
+    within each subgroup (e.g. women in Saxony) add up to 100%.
 
 de:
   confidence_interval: >
@@ -22,3 +28,10 @@ de:
     Ein breites Konfidenzintervall deutet auf eine größere Unsicherheit hin; 
     es kann auf eine kleine Anzahl von Beobachtungen zurückzuführen sein oder auf
     eine große Streuung der Beobachtungen hinweisen.
+  proportional_data_explanation: >
+    Die Prozentangaben addieren sich zu 100% innerhalb der jeweiligen Untergruppen,
+    die Sie durch die Auswahl der Gruppierungsvariablen bilden.
+    Wenn Sie, beispielsweise, die Variable „Beschäftigungsstatus (3-stufig)“
+    nach „Geschlecht“ sowie nach „Bundesland“ gruppieren,
+    addieren sich die Prozentangaben der drei Möglichkeiten „Vollzeit“, „Teilzeit“ und
+    „Nicht in Arbeit“ innerhalb jeder Untergruppe (z.B. Frauen in Sachsen) auf 100%.

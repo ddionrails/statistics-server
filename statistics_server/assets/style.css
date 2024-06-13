@@ -88,6 +88,22 @@
 	background-image: radial-gradient(circle, rgb(255 255 255) 0%, rgb(235 235 235) 50%, rgb(255 255 255) 100%);
 }
 
+#proportional-data-explanation {
+	margin: 0.4em 0 2em 6px;
+	width: 30vw;
+}
+
+#proportional-data-explanation-content {
+	background-image: radial-gradient(circle, rgb(255 255 255) 0%, rgb(235 235 235) 50%, rgb(255 255 255) 100%);
+	border-radius: 3px;
+	border-width: 1px;
+	font-size: 1.2em;
+  border-color: #000000;
+  border-style: solid;
+  margin-left: 1em;
+  padding: .5em;
+}
+
 
 
 @media screen and (max-width: 1800px) {

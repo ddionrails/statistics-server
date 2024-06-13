@@ -145,6 +145,18 @@ app.layout = html.Div(
             ],
         ),
         dcc.Checklist(id="control-panel-checkbox", options=["Hide Control Panel"]),
+        html.Details(
+            id="proportional-data-explanation",
+            className="removed",
+            children=[
+                html.Summary(""),
+                html.P(
+                    id="proportional-data-explanation-content",
+                    children=[LANGUAGE_CONFIG["proportional_data_explanation"]],
+                ),
+            ],
+            open=True,
+        ),
         dcc.Location(id="url"),
     ],
 )
