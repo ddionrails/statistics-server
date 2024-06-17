@@ -168,6 +168,13 @@ def _ensure_correct_variable_type(variable_type: str) -> VariableType:
     raise RuntimeError("Non-existent variable type selected.")
 
 
+def _get_variable_metadata(base_path: Path) -> dict[str, Any]:
+    variable_metadata_file_path = base_path.joinpath("meta.json")
+    with open(variable_metadata_file_path, "r", encoding="utf-8") as file:
+        variable_metadata = load(file)
+    return variable_metadata
+
+
 @callback(
     Output("year-range-slider-container", "children"),
     Input("url", "search"),
@@ -181,9 +188,7 @@ def update_range_slider(search: str) -> dcc.RangeSlider:
 
     data_base_path = get_variable_data_path(variable_type, variable_name)
 
-    variable_metadata_file_path = data_base_path.joinpath("meta.json")
-    with open(variable_metadata_file_path, "r", encoding="utf-8") as file:
-        variable_metadata = load(file)
+    variable_metadata = _get_variable_metadata(data_base_path)
 
     return year_range_slider(
         variable_metadata["start_year"], variable_metadata["end_year"]
