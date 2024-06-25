@@ -185,7 +185,7 @@ def style_numeric_figure(
     figure.update_layout(
         xaxis={"tickmode": "linear", "tick0": start_year, "dtick": 1},
         yaxis=yaxis_layout,
-        hoverlabel=dict(font_size=16, font_family="Rockwell"),
+        hoverlabel=dict(font_size=16, font_family=FONT_FAMILY),
         font_family=FONT_FAMILY,
     )
 
