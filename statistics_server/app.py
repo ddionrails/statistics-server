@@ -52,15 +52,13 @@ def _get_variable_metadata(base_path: Path) -> dict[str, Any]:
     return variable_metadata
 
 
-def _filter_group_metadata(metadata):
-    variable_metadata = _get_variable_metadata(data_base_path)
+def _filter_group_metadata(_metadata, variable_name, variable_type):
+    _base_path = data_base_path.joinpath(variable_type).joinpath(variable_name)
+    variable_metadata = _get_variable_metadata(_base_path)
     groups = variable_metadata.get("groups")
     if not groups:
-        return metadata
-    return {metadata[group] for group in groups}
-
-
-metadata = _filter_group_metadata(metadata)
+        return _metadata
+    return {_metadata[group] for group in groups}
 
 
 app.layout = html.Div(
@@ -72,8 +70,15 @@ app.layout = html.Div(
                 html.Div(
                     className="control-panel",
                     children=[
-                        create_grouping_dropdown(
-                            metadata=metadata, element_id="first-group", language="de"
+                        html.Div(
+                            id="first-group-container",
+                            children=[
+                                create_grouping_dropdown(
+                                    metadata=metadata,
+                                    element_id="first-group",
+                                    language="de",
+                                )
+                            ],
                         ),
                         html.Div(
                             id="second-group-container",
@@ -211,6 +216,32 @@ def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
     if variable_type == "numerical":
         _measure_dropdown = create_measure_dropdown()
     return _measure_dropdown
+
+
+@callback(
+    Output("first-dropdown-container", "children"),
+    Output("second-dropdown-container", "children"),
+    Input("url", "search"),
+)
+def handle_group_dropdowns(search: str) -> dcc.Dropdown | html.Div:
+    """Create measure dropdown for numerical view or placeholder Div for other."""
+
+    variable_type: VariableType
+    variable_name, variable_type = parse_search(search)
+    _metadata = _filter_group_metadata(metadata, variable_name, variable_type)
+
+    first_dropdown = create_grouping_dropdown(
+        metadata=_metadata,
+        element_id="first-group",
+        language="de",
+    )
+    second_dropdown = create_grouping_dropdown(
+        metadata=_metadata,
+        element_id="second-group",
+        language="de",
+    )
+
+    return first_dropdown, second_dropdown
 
 
 @callback(
