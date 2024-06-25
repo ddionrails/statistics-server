@@ -8,6 +8,7 @@ from plotly.graph_objects import Figure
 from statistics_server.types import PlotType
 
 type COLOR = str
+FONT_FAMILY = "Helvetica Neue"
 
 COLOR_PALETTE: tuple[COLOR, ...] = (
     "rgb(255, 194, 10)",
@@ -185,9 +186,7 @@ def style_numeric_figure(
         xaxis={"tickmode": "linear", "tick0": start_year, "dtick": 1},
         yaxis=yaxis_layout,
         hoverlabel=dict(font_size=16, font_family="Rockwell"),
-        # Reversed seems to be the order of the groups in the csv files for some reason
-        # For better control traces will need to be ordered before adding them to Figure
-        legend={"traceorder": "reversed"},
+        font_family=FONT_FAMILY,
     )
 
     figure.update_yaxes(showline=True, rangemode="tozero", linewidth=1, linecolor="black")
