@@ -13,7 +13,6 @@ from statistics_server.language_handling import get_language_config
 from statistics_server.layout import (
     create_grouping_dropdown,
     create_measure_dropdown,
-    year_range_slider,
 )
 from statistics_server.names import MEAN, PROPORTION, YEAR
 from statistics_server.numerical_boxplot_graph import create_numerical_boxplot_figure
@@ -35,7 +34,6 @@ def get_environment_variables():
 
 
 PLACEHOLDER_MEASURE_DROPDOWN = dcc.Dropdown([MEAN], MEAN, id="measure-dropdown")
-PLACEHOLDER_YEAR_RANGE_SLIDER = dcc.RangeSlider(1, 2, id="year-range-slider")
 
 data_base_path, url_base_pathname = get_environment_variables()
 group_metadata_file = data_base_path.joinpath("group_metadata.json").absolute()
@@ -49,10 +47,6 @@ with open(group_metadata_file, "r", encoding="utf-8") as metadata_file:
 app.layout = html.Div(
     id="outer-container",
     children=[
-        html.Div(
-            id="year-range-slider-container",
-            children=[PLACEHOLDER_YEAR_RANGE_SLIDER],
-        ),
         html.Div(
             id="control-and-graph",
             children=[
@@ -175,26 +169,6 @@ def _get_variable_metadata(base_path: Path) -> dict[str, Any]:
     return variable_metadata
 
 
-@callback(
-    Output("year-range-slider-container", "children"),
-    Input("url", "search"),
-)
-def update_range_slider(search: str) -> dcc.RangeSlider:
-    if search[0] == "?":
-        search = search[1:]
-    parsed_search = parse_qs(search)
-    variable_name = parsed_search["variable"][0]
-    variable_type = _ensure_correct_variable_type(parsed_search["type"][0])
-
-    data_base_path = get_variable_data_path(variable_type, variable_name)
-
-    variable_metadata = _get_variable_metadata(data_base_path)
-
-    return year_range_slider(
-        variable_metadata["start_year"], variable_metadata["end_year"]
-    )
-
-
 def parse_search(raw_search: str) -> tuple[str, VariableType]:
     if not raw_search:
         raise RuntimeError("Incorrect query parameters provided.")
@@ -233,7 +207,6 @@ def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
     dependencies.State("first-group", "value"),
     dependencies.State("second-group", "value"),
     dependencies.State("first-group", "options"),
-    dependencies.State("year-range-slider", "value"),
     Input("btn-data-download", "n_clicks"),
     prevent_initial_call=True,
 )
@@ -242,25 +215,20 @@ def download(
     first_group_value: str,
     second_group_value: str | None,
     first_group_options: list[PlotlyLabeledOption],
-    year_range: tuple[int, int],
     _,
 ) -> dict[str, Any | None] | None:
 
     variable_name, variable_type = parse_search(search)
-    data_base_path = get_variable_data_path(variable_type, variable_name)
+    _data_base_path = get_variable_data_path(variable_type, variable_name)
 
     grouping, _, second_group_value = handle_grouping(
         first_group_value, second_group_value, first_group_options
     )
     file_name_base = "_".join([variable_name, YEAR, *grouping])
-    data_file = data_base_path.joinpath(file_name_base + ".csv").absolute()
+    data_file = _data_base_path.joinpath(file_name_base + ".csv").absolute()
     _dataframe = read_csv(data_file)
 
-    _dataframe = _dataframe[_dataframe[YEAR].between(*year_range)]
-
-    download_file_name = (
-        "_".join([file_name_base, *[str(i) for i in year_range]]) + ".csv"
-    )
+    download_file_name = f"{file_name_base}.csv"
 
     return dcc.send_data_frame(_dataframe.to_csv, download_file_name, index=False)
 
@@ -274,7 +242,6 @@ def download(
     Input("first-group", "options"),
     Input("confidence-checkbox", "value"),
     Input("legend-checkbox", "value"),
-    Input("year-range-slider", "value"),
     Input("measure-dropdown", "value"),
     Input("bargraph-checkbox", "value"),
     Input("boxplot-checkbox", "value"),
@@ -287,7 +254,6 @@ def handle_inputs(
     first_group_options: list[PlotlyLabeledOption],
     show_confidence: str,
     show_legend: str,
-    year_range: tuple[int, int],
     measure: Measure,
     bar_graph: bool,
     boxplot: bool,
@@ -311,9 +277,6 @@ def handle_inputs(
         "_".join([variable_name, YEAR, *grouping]) + ".csv"
     ).absolute()
     _dataframe = read_csv(data_file)
-
-    if year_range:
-        _dataframe = _dataframe[_dataframe[YEAR].between(*year_range)]
 
     if variable_type == "categorical":
         # It is currently important that variable name is at the end of the grouping list

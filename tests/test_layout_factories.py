@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from statistics_server.layout import create_grouping_dropdown, year_range_slider
+from statistics_server.layout import create_grouping_dropdown
 
 
 METADATA = {
@@ -18,14 +18,6 @@ METADATA = {
 
 
 class TestLayoutFabrics(TestCase):
-
-    def test_year_range_slider(self):
-        min = 1999
-        max = 2000
-        slider = year_range_slider(min, max)
-        self.assertEqual(min, slider.min)  # type: ignore
-        self.assertEqual(max, slider.max)  # type: ignore
-        self.assertEqual(1, slider.step)  # type: ignore
 
     def test_grouping_dropdown_default(self):
         expected_unselected = {"label": "No Grouping", "value": None}

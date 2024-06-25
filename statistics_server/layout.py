@@ -113,18 +113,6 @@ PLOT_LANGUAGE_LABELS = {
 DROPDOWN_PLACEHOLDER = {"en": "Select Group", "de": "Gruppierung Auswählen"}
 
 
-def year_range_slider(start_year: int, end_year: int) -> dcc.RangeSlider:
-    """Create a year range Slider."""
-    return dcc.RangeSlider(
-        start_year,
-        end_year,
-        step=1,
-        value=[start_year, end_year],
-        marks={year: year for year in range(start_year, end_year + 1)},
-        id="year-range-slider",
-    )
-
-
 def create_measure_dropdown(language="en"):
     measure_names = UI_TRANSLATIONS["measure_names"][language]
     options = [
