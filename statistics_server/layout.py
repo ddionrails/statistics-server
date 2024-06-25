@@ -8,7 +8,7 @@ from plotly.graph_objects import Figure
 from statistics_server.types import PlotType
 
 type COLOR = str
-FONT_FAMILY = "Helvetica Neue"
+FONT_FAMILY = "Helvetica"
 
 COLOR_PALETTE: tuple[COLOR, ...] = (
     "rgb(255, 194, 10)",
