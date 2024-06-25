@@ -44,6 +44,25 @@ app = Dash(__name__, server=server, url_base_pathname=url_base_pathname)  # type
 with open(group_metadata_file, "r", encoding="utf-8") as metadata_file:
     metadata = load(metadata_file)
 
+
+def _get_variable_metadata(base_path: Path) -> dict[str, Any]:
+    variable_metadata_file_path = base_path.joinpath("meta.json")
+    with open(variable_metadata_file_path, "r", encoding="utf-8") as file:
+        variable_metadata = load(file)
+    return variable_metadata
+
+
+def _filter_group_metadata(metadata):
+    variable_metadata = _get_variable_metadata(data_base_path)
+    groups = variable_metadata.get("groups")
+    if not groups:
+        return metadata
+    return {metadata[group] for group in groups}
+
+
+metadata = _filter_group_metadata(metadata)
+
+
 app.layout = html.Div(
     id="outer-container",
     children=[
@@ -160,13 +179,6 @@ def _ensure_correct_variable_type(variable_type: str) -> VariableType:
     if variable_type in get_args(VariableType.__value__):
         return cast(VariableType, variable_type)
     raise RuntimeError("Non-existent variable type selected.")
-
-
-def _get_variable_metadata(base_path: Path) -> dict[str, Any]:
-    variable_metadata_file_path = base_path.joinpath("meta.json")
-    with open(variable_metadata_file_path, "r", encoding="utf-8") as file:
-        variable_metadata = load(file)
-    return variable_metadata
 
 
 def parse_search(raw_search: str) -> tuple[str, VariableType]:
