@@ -10,10 +10,7 @@ from pandas import read_csv
 from plotly.graph_objects import Figure
 
 from statistics_server.language_handling import get_language_config
-from statistics_server.layout import (
-    create_grouping_dropdown,
-    create_measure_dropdown,
-)
+from statistics_server.layout import create_grouping_dropdown, create_measure_dropdown
 from statistics_server.names import MEAN, PROPORTION, YEAR
 from statistics_server.numerical_boxplot_graph import create_numerical_boxplot_figure
 from statistics_server.simple_graph import (
@@ -58,7 +55,11 @@ def _filter_group_metadata(_metadata, variable_name, variable_type):
     groups = variable_metadata.get("groups")
     if not groups:
         return _metadata
-    return {_metadata[group] for group in groups}
+    output = {}
+    for group in groups:
+        if group in _metadata:
+            output[group] = _metadata[group]
+    return output
 
 
 app.layout = html.Div(
@@ -219,12 +220,11 @@ def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
 
 
 @callback(
-    Output("first-dropdown-container", "children"),
-    Output("second-dropdown-container", "children"),
+    Output("first-group-container", "children"),
+    Output("second-group-container", "children"),
     Input("url", "search"),
 )
-def handle_group_dropdowns(search: str) -> dcc.Dropdown | html.Div:
-    """Create measure dropdown for numerical view or placeholder Div for other."""
+def handle_group_dropdowns(search: str) -> tuple[dcc.Dropdown, dcc.Dropdown]:
 
     variable_type: VariableType
     variable_name, variable_type = parse_search(search)
@@ -410,4 +410,4 @@ application = app.run
 
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)
