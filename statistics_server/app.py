@@ -17,7 +17,12 @@ from statistics_server.simple_graph import (
     create_bar_graph_figure,
     create_line_graph_figure,
 )
-from statistics_server.types import Measure, PlotlyLabeledOption, VariableType
+from statistics_server.types import (
+    LanguageCode,
+    Measure,
+    PlotlyLabeledOption,
+    VariableType,
+)
 
 LANGUAGE_CONFIG = get_language_config()
 
@@ -187,7 +192,7 @@ def _ensure_correct_variable_type(variable_type: str) -> VariableType:
     raise RuntimeError("Non-existent variable type selected.")
 
 
-def parse_search(raw_search: str) -> tuple[str, VariableType]:
+def parse_search(raw_search: str) -> tuple[str, VariableType, LanguageCode]:
     if not raw_search:
         raise RuntimeError("Incorrect query parameters provided.")
 
@@ -201,8 +206,9 @@ def parse_search(raw_search: str) -> tuple[str, VariableType]:
 
     variable_type = _ensure_correct_variable_type(parsed_search["type"][0])
     variable_name = parsed_search["variable"][0]
+    language: LanguageCode = cast(LanguageCode, parsed_search.get("language", ["en"])[0])
 
-    return variable_name, variable_type
+    return variable_name, variable_type, language
 
 
 @callback(
@@ -213,7 +219,7 @@ def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
     """Create measure dropdown for numerical view or placeholder Div for other."""
     _measure_dropdown = html.Div(id="measure-dropdown")
     variable_type: VariableType
-    _, variable_type = parse_search(search)
+    _, variable_type, _ = parse_search(search)
     if variable_type == "numerical":
         _measure_dropdown = create_measure_dropdown()
     return _measure_dropdown
@@ -227,18 +233,18 @@ def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
 def handle_group_dropdowns(search: str) -> tuple[dcc.Dropdown, dcc.Dropdown]:
 
     variable_type: VariableType
-    variable_name, variable_type = parse_search(search)
+    variable_name, variable_type, language = parse_search(search)
     _metadata = _filter_group_metadata(metadata, variable_name, variable_type)
 
     first_dropdown = create_grouping_dropdown(
         metadata=_metadata,
         element_id="first-group",
-        language="de",
+        language=language,
     )
     second_dropdown = create_grouping_dropdown(
         metadata=_metadata,
         element_id="second-group",
-        language="de",
+        language=language,
     )
 
     return first_dropdown, second_dropdown
@@ -261,7 +267,7 @@ def download(
     _,
 ) -> dict[str, Any | None] | None:
 
-    variable_name, variable_type = parse_search(search)
+    variable_name, variable_type, _ = parse_search(search)
     _data_base_path = get_variable_data_path(variable_type, variable_name)
 
     grouping, _, second_group_value = handle_grouping(
@@ -310,7 +316,7 @@ def handle_inputs(
             trace["name"]: trace.get("visible", True) for trace in current_graph["data"]
         }
 
-    variable_name, variable_type = parse_search(search)
+    variable_name, variable_type, _ = parse_search(search)
     _data_base_path = get_variable_data_path(variable_type, variable_name)
 
     grouping, options, second_group_value = handle_grouping(

@@ -8,6 +8,7 @@ type Measure = Literal["mean", "median", "proportion"]
 type PlotType = Literal["line", "box", "bar"]
 type ScatterPlotGenerator = Generator[Scatter, None, None]
 type VariableType = Literal["categorical", "numerical", "numerical"]
+type LanguageCode = Literal["en", "de"]
 
 
 class EmptyIterator(Enum):
