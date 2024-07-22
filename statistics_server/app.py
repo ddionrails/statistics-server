@@ -74,27 +74,18 @@ app.layout = html.Div(
             id="control-and-graph",
             children=[
                 html.Div(
+                    id="control-panel",
                     className="control-panel",
                     children=[
-                        html.Div(
-                            id="first-group-container",
-                            children=[
-                                create_grouping_dropdown(
-                                    metadata=metadata,
-                                    element_id="first-group",
-                                    language="de",
-                                )
-                            ],
+                        create_grouping_dropdown(
+                            metadata=metadata,
+                            element_id="first-group",
+                            language="de",
                         ),
-                        html.Div(
-                            id="second-group-container",
-                            children=[
-                                create_grouping_dropdown(
-                                    metadata=metadata,
-                                    element_id="second-group",
-                                    language="de",
-                                ),
-                            ],
+                        create_grouping_dropdown(
+                            metadata=metadata,
+                            element_id="second-group",
+                            language="de",
                         ),
                         html.Div(
                             id="measure-dropdown-container",
@@ -212,29 +203,22 @@ def parse_search(raw_search: str) -> tuple[str, VariableType, LanguageCode]:
 
 
 @callback(
-    Output("measure-dropdown-container", "children"),
+    Output("control-panel", "children"),
     Input("url", "search"),
 )
-def handle_measure_dropdown(search: str) -> dcc.Dropdown | html.Div:
-    """Create measure dropdown for numerical view or placeholder Div for other."""
-    _measure_dropdown = html.Div(id="measure-dropdown")
-    variable_type: VariableType
-    _, variable_type, _ = parse_search(search)
-    if variable_type == "numerical":
-        _measure_dropdown = create_measure_dropdown()
-    return _measure_dropdown
+def handle_group_dropdowns(search: str) -> list[Any]:
 
-
-@callback(
-    Output("first-group-container", "children"),
-    Output("second-group-container", "children"),
-    Input("url", "search"),
-)
-def handle_group_dropdowns(search: str) -> tuple[dcc.Dropdown, dcc.Dropdown]:
+    # TODO: set up ui elements for language.
 
     variable_type: VariableType
     variable_name, variable_type, language = parse_search(search)
     _metadata = _filter_group_metadata(metadata, variable_name, variable_type)
+
+    language_config = get_language_config(language)
+
+    _measure_dropdown = html.Div(id="measure-dropdown")
+    if variable_type == "numerical":
+        _measure_dropdown = create_measure_dropdown(language)
 
     first_dropdown = create_grouping_dropdown(
         metadata=_metadata,
@@ -247,7 +231,72 @@ def handle_group_dropdowns(search: str) -> tuple[dcc.Dropdown, dcc.Dropdown]:
         language=language,
     )
 
-    return first_dropdown, second_dropdown
+    children = [
+        first_dropdown,
+        second_dropdown,
+        _measure_dropdown,
+        html.Div(
+            id="confidence-container",
+            children=[
+                dcc.Checklist(
+                    id="confidence-checkbox",
+                    options=[
+                        {
+                            "label": "Show Confidence Interval",
+                            "value": "confidence",
+                        },
+                    ],
+                    value=["confidence"],
+                ),
+                html.Button(
+                    id="confidence-popover-button",
+                    className="info-icon",
+                    children=["🛈"],
+                ),
+                html.Div(
+                    id="confidence-popover",
+                    className="hidden",
+                    children=[language_config["confidence_interval"]],
+                ),
+            ],
+        ),
+        dcc.Checklist(
+            id="legend-checkbox",
+            options=[
+                {
+                    "label": "Show Legend",
+                    "value": "legend",
+                },
+            ],
+            value=["legend"],
+        ),
+        dcc.Checklist(
+            id="bargraph-checkbox",
+            className="removed",
+            options=[
+                {
+                    "label": "Show Bar Graph",
+                    "value": "bar",
+                },
+            ],
+            value=False,
+        ),
+        dcc.Checklist(
+            id="boxplot-checkbox",
+            className="removed",
+            options=[
+                {
+                    "label": "Show Boxplot",
+                    "value": "boxplot",
+                },
+            ],
+            value=False,
+        ),
+        html.Button("Download CSV", id="btn-data-download"),
+        dcc.Download(id="data-download", type="str"),
+    ]
+
+    return children
 
 
 @callback(
