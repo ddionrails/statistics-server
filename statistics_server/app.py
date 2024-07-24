@@ -159,18 +159,9 @@ app.layout = html.Div(
                 ),
             ],
         ),
-        dcc.Checklist(id="control-panel-checkbox", options=["Hide Control Panel"]),
-        html.Details(
-            id="proportional-data-explanation",
-            className="removed",
-            children=[
-                html.Summary(""),
-                html.P(
-                    id="proportional-data-explanation-content",
-                    children=[LANGUAGE_CONFIG["proportional_data_explanation"]],
-                ),
-            ],
-            open=True,
+        html.Div(
+            id="below-control-and-graph",
+            children=[],
         ),
         dcc.Location(id="url"),
     ],
@@ -187,6 +178,7 @@ def parse_search(raw_search: str) -> tuple[str, VariableType, LanguageCode]:
     if not raw_search:
         raise RuntimeError("Incorrect query parameters provided.")
 
+    search = raw_search
     if raw_search[0] == "?":
         search = raw_search[1:]
 
@@ -197,16 +189,19 @@ def parse_search(raw_search: str) -> tuple[str, VariableType, LanguageCode]:
 
     variable_type = _ensure_correct_variable_type(parsed_search["type"][0])
     variable_name = parsed_search["variable"][0]
-    language: LanguageCode = cast(LanguageCode, parsed_search.get("language", ["en"])[0])
+    language: LanguageCode = cast(
+        LanguageCode, parsed_search.get("language", ["en"])[0]
+    )
 
     return variable_name, variable_type, language
 
 
 @callback(
     Output("control-panel", "children"),
+    Output("below-control-and-graph", "children"),
     Input("url", "search"),
 )
-def handle_group_dropdowns(search: str) -> list[Any]:
+def handle_group_dropdowns(search: str) -> tuple[list[Any], list[Any]]:
 
     # TODO: set up ui elements for language.
 
@@ -231,6 +226,22 @@ def handle_group_dropdowns(search: str) -> list[Any]:
         language=language,
     )
 
+    below_control_and_graph_children = [
+        dcc.Checklist(id="control-panel-checkbox", options=[language_config["hide_control_panel"]]),
+        html.Details(
+            id="proportional-data-explanation",
+            className="removed",
+            children=[
+                html.Summary(""),
+                html.P(
+                    id="proportional-data-explanation-content",
+                    children=[language_config["proportional_data_explanation"]],
+                ),
+            ],
+            open=True,
+        ),
+    ]
+
     children = [
         first_dropdown,
         second_dropdown,
@@ -242,7 +253,7 @@ def handle_group_dropdowns(search: str) -> list[Any]:
                     id="confidence-checkbox",
                     options=[
                         {
-                            "label": "Show Confidence Interval",
+                            "label": language_config["confidence_checkbox"],
                             "value": "confidence",
                         },
                     ],
@@ -264,7 +275,7 @@ def handle_group_dropdowns(search: str) -> list[Any]:
             id="legend-checkbox",
             options=[
                 {
-                    "label": "Show Legend",
+                    "label": language_config["show_legend"],
                     "value": "legend",
                 },
             ],
@@ -275,7 +286,7 @@ def handle_group_dropdowns(search: str) -> list[Any]:
             className="removed",
             options=[
                 {
-                    "label": "Show Bar Graph",
+                    "label": language_config["show_bar_graph"],
                     "value": "bar",
                 },
             ],
@@ -286,17 +297,17 @@ def handle_group_dropdowns(search: str) -> list[Any]:
             className="removed",
             options=[
                 {
-                    "label": "Show Boxplot",
+                    "label": language_config["show_boxplot"],
                     "value": "boxplot",
                 },
             ],
             value=False,
         ),
-        html.Button("Download CSV", id="btn-data-download"),
+        html.Button(language_config["download_csv"], id="btn-data-download"),
         dcc.Download(id="data-download", type="str"),
     ]
 
-    return children
+    return (children, below_control_and_graph_children)
 
 
 @callback(

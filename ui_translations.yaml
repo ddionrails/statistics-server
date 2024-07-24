@@ -15,6 +15,12 @@ en:
     ‘Employment Level of Individual’ by ‘Gender’ and by ‘Federal state’,
     the percentages of the three options ‘Full Time’, ‘Part Time’ and ‘Not working’
     within each subgroup (e.g. women in Saxony) add up to 100%.
+  confidence_checkbox: Show Confidence Interval
+  show_legend: Show Legend
+  show_bar_graph: Show Bar Graph
+  show_boxplot: Show Boxplot
+  download_csv: Download CSV
+  hide_control_panel: Hide Control Panel
 
 de:
   confidence_interval: >
@@ -26,7 +32,7 @@ de:
     welcher Wertebereich den wahren (Populations-)Mittelwert mit einer Wahrscheinlichkeit 
     von 95% umschließt. 
     Ein breites Konfidenzintervall deutet auf eine größere Unsicherheit hin; 
-    es kann auf eine kleine Anzahl von Beobachtungen zurückzuführen sein oder auf
+    es kann auf eine kleine AnzahAl von Beobachtungen zurückzuführen sein oder auf
     eine große Streuung der Beobachtungen hinweisen.
   proportional_data_explanation: >
     Die Prozentangaben addieren sich zu 100% innerhalb der jeweiligen Untergruppen,
@@ -35,3 +41,9 @@ de:
     nach „Geschlecht“ sowie nach „Bundesland“ gruppieren,
     addieren sich die Prozentangaben der drei Möglichkeiten „Vollzeit“, „Teilzeit“ und
     „Nicht in Arbeit“ innerhalb jeder Untergruppe (z.B. Frauen in Sachsen) auf 100%.
+  confidence_checkbox: Konfidenzintervall Anzeigen
+  show_legend: Legende Anzeigen
+  show_bar_graph: Bargraph Anzeigen
+  show_boxplot: Boxplot Anzeigen
+  download_csv: CSV Herunterladen
+  hide_control_panel: Bedienfeld Ausblenden
