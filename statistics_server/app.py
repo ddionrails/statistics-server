@@ -9,7 +9,10 @@ from flask import Flask
 from pandas import read_csv
 from plotly.graph_objects import Figure
 
-from statistics_server.language_handling import get_language_config
+from statistics_server.language_handling import (
+    get_language_config,
+    switch_label_language,
+)
 from statistics_server.layout import create_grouping_dropdown, create_measure_dropdown
 from statistics_server.names import MEAN, PROPORTION, YEAR
 from statistics_server.numerical_boxplot_graph import create_numerical_boxplot_figure
@@ -203,8 +206,6 @@ def parse_search(raw_search: str) -> tuple[str, VariableType, LanguageCode]:
 )
 def handle_group_dropdowns(search: str) -> tuple[list[Any], list[Any]]:
 
-    # TODO: set up ui elements for language.
-
     variable_type: VariableType
     variable_name, variable_type, language = parse_search(search)
     _metadata = _filter_group_metadata(metadata, variable_name, variable_type)
@@ -376,7 +377,7 @@ def handle_inputs(
             trace["name"]: trace.get("visible", True) for trace in current_graph["data"]
         }
 
-    variable_name, variable_type, _ = parse_search(search)
+    variable_name, variable_type, language = parse_search(search)
     _data_base_path = get_variable_data_path(variable_type, variable_name)
 
     grouping, options, second_group_value = handle_grouping(
@@ -387,14 +388,20 @@ def handle_inputs(
     ).absolute()
     _dataframe = read_csv(data_file)
 
+    if language == "de":
+        _base_path = data_base_path.joinpath(variable_type).joinpath(variable_name)
+        _metadata = []
+        if variable_type == "categorical":
+            _metadata = [_get_variable_metadata(_base_path)]
+        for _variable in grouping:
+            _metadata.append(metadata[_variable])
+        _dataframe = switch_label_language(data=_dataframe, metadata=_metadata)
+
     if variable_type == "categorical":
         # It is currently important that variable name is at the end of the grouping list
         # for the grouping of the bar plot to work properly.
         grouping.append(variable_name)
         measure = PROPORTION
-
-    if not measure:
-        measure = MEAN
 
     if bar_graph:
         return (
@@ -403,6 +410,7 @@ def handle_inputs(
                 group=grouping,
                 show_legend=bool(show_legend),
                 measure=measure,
+                language=language
             ),
             second_group_value,
             options,
@@ -428,6 +436,7 @@ def handle_inputs(
             show_legend=bool(show_legend),
             measure=measure,
             trace_visibility=trace_visibility,
+            language=language
         ),
         second_group_value,
         options,

@@ -20,3 +20,13 @@ class PlotlyLabeledOption(TypedDict):
 
     value: str | None
     label: str
+
+class VariableMetadata(TypedDict):
+
+    label: str
+    label_de: str
+    variable: str
+    values: list[int]
+    value_labels: list[str]
+    value_labels_de: list[str]
+    groups: list[str]

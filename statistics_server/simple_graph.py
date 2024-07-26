@@ -3,12 +3,13 @@
 # %%
 
 from collections import deque
-from typing import Generator, Iterable
+from typing import Generator, Iterable, Literal
 
 from pandas import DataFrame, Series, read_csv
 from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
+from statistics_server.language_handling import YEAR_TRANSLATION
 from statistics_server.layout import (
     PLOT_LANGUAGE_LABELS,
     get_colors_from_palette,
@@ -57,13 +58,17 @@ def create_traces(
     measure: Measure = "mean",
     plot_type: PlotType = "line",
     trace_visibility: dict[str, str] = {},
+    language: Literal["en"] | Literal["de"] = "en",
 ) -> tuple[ScatterPlotGenerator | BarPlotGenerator, ScatterPlotGenerator | Iterable]:
     groups = dataframe.groupby(group_names)
     if plot_type == "bar":
-        main_traces = create_main_trace_bar(groups, measure=measure)
+        main_traces = create_main_trace_bar(groups, measure=measure, language=language)
     else:
         main_traces = create_main_trace(
-            groups, measure=measure, trace_visibility=trace_visibility
+            groups,
+            measure=measure,
+            trace_visibility=trace_visibility,
+            language=language,
         )
     confidence_traces = EmptyIterator
     if show_confidence:
@@ -106,6 +111,7 @@ def create_main_trace_bar(
     groups: DataFrameGroupBy | Iterable,
     measure: Measure = "proportion",
     trace_visibility: dict["str", "str"] = {},
+    language: Literal["en"] | Literal["de"] = "en",
 ) -> BarPlotGenerator:
     """Create lines for all groups in a line graph"""
     color_palette = get_colors_from_palette()
@@ -132,9 +138,10 @@ def create_main_trace_bar(
                     grouped_data[f"{measure}_lower_confidence"],
                     grouped_data[f"{measure}_upper_confidence"],
                     measure=measure,
+                    language=language,
                 )
             ),
-            hovertemplate="Year: %{x}<br>" + measure.capitalize() + measure_formatter,
+            hovertemplate=YEAR_TRANSLATION[language] + ": %{x}<br>" + measure.capitalize() + measure_formatter,
             textposition="none",
             marker_color=group_color_map[grouped_by[-1]],
             legendgroup=grouped_by[-1],
@@ -143,10 +150,12 @@ def create_main_trace_bar(
     del color_palette
 
 
+# TODO: Add language flag to all functions that need it
 def create_main_trace(
     groups: DataFrameGroupBy | Iterable,
     measure: Measure = "mean",
     trace_visibility: dict[str, str | bool] = {},
+    language: Literal["en"] | Literal["de"] = "en",
 ) -> ScatterPlotGenerator:
     """Create lines for all groups in a line graph"""
     color_palette = get_colors_from_palette()
@@ -172,12 +181,16 @@ def create_main_trace(
                     grouped_data[f"{measure}_lower_confidence"],
                     grouped_data[f"{measure}_upper_confidence"],
                     measure=measure,
+                    language=language,
                 )
             ),
             mode="lines+markers",
             line={"color": next(color_palette), "dash": next(line_types)},
             marker={"size": 5, "line": {"width": 2}},
-            hovertemplate="Year: %{x}<br>" + measure.capitalize() + measure_formatter,
+            hovertemplate=YEAR_TRANSLATION[language]
+            + ": %{x}<br>"
+            + measure.capitalize()
+            + measure_formatter,
             legendgroup=group_key,
             visible=visible,
         )
@@ -234,6 +247,7 @@ def create_line_graph_figure(
     show_legend: bool = True,
     measure: Measure = "mean",
     trace_visibility={},
+    language: Literal["en"] | Literal["de"] = "en",
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
     main_traces = EmptyIterator
@@ -244,7 +258,10 @@ def create_line_graph_figure(
         # because plotly will not group traces otherwise
         dataframe_like_a_groupby = [((" "), dataframe)]
         main_traces = create_main_trace(
-            dataframe_like_a_groupby, measure=measure, trace_visibility=trace_visibility
+            dataframe_like_a_groupby,
+            measure=measure,
+            trace_visibility=trace_visibility,
+            language=language,
         )
         if show_confidence:
             confidence_traces = create_confidence_trace_pairs(
@@ -260,6 +277,7 @@ def create_line_graph_figure(
             show_confidence,
             measure=measure,
             trace_visibility=trace_visibility,
+            language=language,
         )
     traces = deque(main_traces)
     traces.extend(confidence_traces)
@@ -284,6 +302,7 @@ def create_bar_graph_figure(
     group: list[str] | None = None,
     show_legend: bool = True,
     measure: Measure = "mean",
+    language: Literal["en"] | Literal["de"] = "en",
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
     main_traces = EmptyIterator
@@ -293,7 +312,9 @@ def create_bar_graph_figure(
         # (" ") is passed as grouping names instead of ("")
         # because plotly will not group traces otherwise
         dataframe_like_a_groupby = [((" "), dataframe)]
-        main_traces = create_main_trace_bar(dataframe_like_a_groupby, measure=measure)
+        main_traces = create_main_trace_bar(
+            dataframe_like_a_groupby, measure=measure, language=language
+        )
 
     if group:
         main_traces, confidence_traces = create_traces(
