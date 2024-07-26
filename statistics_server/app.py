@@ -29,6 +29,8 @@ from statistics_server.types import (
 
 LANGUAGE_CONFIG = get_language_config()
 
+# TODO: Find a way to switch "Mean" to german in tooltip 
+
 
 def get_environment_variables():
     base_path_env_variable = getenv("STATISTICS_BASE_PATH")
