@@ -9,7 +9,7 @@ from pandas import DataFrame, Series, read_csv
 from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
-from statistics_server.language_handling import YEAR_TRANSLATION
+from statistics_server.language_handling import MEASURE_TRANSLATION, YEAR_TRANSLATION
 from statistics_server.layout import (
     PLOT_LANGUAGE_LABELS,
     get_colors_from_palette,
@@ -141,7 +141,7 @@ def create_main_trace_bar(
                     language=language,
                 )
             ),
-            hovertemplate=YEAR_TRANSLATION[language] + ": %{x}<br>" + measure.capitalize() + measure_formatter,
+            hovertemplate=YEAR_TRANSLATION[language] + ": %{x}<br>" + MEASURE_TRANSLATION[language][measure.lower()] + measure_formatter,
             textposition="none",
             marker_color=group_color_map[grouped_by[-1]],
             legendgroup=grouped_by[-1],
@@ -189,7 +189,7 @@ def create_main_trace(
             marker={"size": 5, "line": {"width": 2}},
             hovertemplate=YEAR_TRANSLATION[language]
             + ": %{x}<br>"
-            + measure.capitalize()
+            + MEASURE_TRANSLATION[language][measure.lower()]
             + measure_formatter,
             legendgroup=group_key,
             visible=visible,

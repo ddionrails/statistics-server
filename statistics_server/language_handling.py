@@ -9,6 +9,10 @@ from statistics_server.types import VariableMetadata
 UI_TRANSLATION_KEY = "UI_TRANSLATIONS_PATH"
 
 YEAR_TRANSLATION = {"en": "Year", "de": "Jahr"}
+MEASURE_TRANSLATION = {
+    "en": {"mean": "Mean", "median": "Median", "proportion": "Proportion"},
+    "de": {"mean": "Durchschnitt", "median": "Median", "proportion": "Anteil"},
+}
 
 UI_TRANSLATIONS_CONFIG_PATH = Path(getenv(UI_TRANSLATION_KEY, ""))
 if UI_TRANSLATIONS_CONFIG_PATH == Path("") or not UI_TRANSLATIONS_CONFIG_PATH.exists():
