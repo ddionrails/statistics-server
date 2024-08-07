@@ -64,5 +64,5 @@ def handle_categorical_labels_and_order(
     for variable, order in type_mapping.items():
         _type = CategoricalDtype(categories=order, ordered=True)
         data[variable] = data[variable].astype(_type)
-    data = data.sort_values(list(type_mapping.keys()))
+    data = data.sort_values(["year", *list(type_mapping.keys())])
     return data
