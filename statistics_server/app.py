@@ -29,7 +29,7 @@ from statistics_server.types import (
 
 LANGUAGE_CONFIG = get_language_config()
 
-# TODO: Find a way to switch "Mean" to german in tooltip 
+# TODO: Find a way to switch "Mean" to german in tooltip
 
 
 def get_environment_variables():
@@ -60,7 +60,9 @@ def _get_variable_metadata(base_path: Path) -> dict[str, Any]:
 
 
 def _filter_group_metadata(_metadata, variable_name, variable_type):
-    _base_path = data_base_path.joinpath(variable_type).joinpath(variable_name)
+    _base_path = get_variable_data_path(
+        variable_type=variable_type, variable_name=variable_name
+    )
     variable_metadata = _get_variable_metadata(_base_path)
     groups = variable_metadata.get("groups")
     if not groups:
@@ -230,7 +232,9 @@ def handle_group_dropdowns(search: str) -> tuple[list[Any], list[Any]]:
     )
 
     below_control_and_graph_children = [
-        dcc.Checklist(id="control-panel-checkbox", options=[language_config["hide_control_panel"]]),
+        dcc.Checklist(
+            id="control-panel-checkbox", options=[language_config["hide_control_panel"]]
+        ),
         html.Details(
             id="proportional-data-explanation",
             className="removed",
@@ -391,7 +395,9 @@ def handle_inputs(
     _dataframe = read_csv(data_file)
 
     if language == "de":
-        _base_path = data_base_path.joinpath(variable_type).joinpath(variable_name)
+        _base_path = get_variable_data_path(
+            variable_type=variable_type, variable_name=variable_name
+        )
         _metadata = []
         if variable_type == "categorical":
             _metadata = [_get_variable_metadata(_base_path)]
@@ -412,7 +418,7 @@ def handle_inputs(
                 group=grouping,
                 show_legend=bool(show_legend),
                 measure=measure,
-                language=language
+                language=language,
             ),
             second_group_value,
             options,
@@ -438,7 +444,7 @@ def handle_inputs(
             show_legend=bool(show_legend),
             measure=measure,
             trace_visibility=trace_visibility,
-            language=language
+            language=language,
         ),
         second_group_value,
         options,
@@ -449,7 +455,10 @@ def get_variable_data_path(variable_type: VariableType, variable_name: str) -> P
 
     variable_data_base_path = data_base_path.joinpath(
         f"{variable_type}/{variable_name}/"
-    ).absolute()
+    ).resolve()
+    # prevent path traversal outside the base path
+    if variable_data_base_path.parent.parent != data_base_path:
+        raise RuntimeError("Bad variable base path")
 
     return variable_data_base_path
 
