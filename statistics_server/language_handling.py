@@ -3,6 +3,7 @@ from pathlib import Path
 
 import yaml
 from pandas import DataFrame
+from pandas.api.types import CategoricalDtype
 
 from statistics_server.types import VariableMetadata
 
@@ -30,11 +31,21 @@ def get_language_config(language: str = "en"):
     return language_config[language]
 
 
-def switch_label_language(data: DataFrame, metadata: list[VariableMetadata]):
+def handle_categorical_labels_and_order(
+    data: DataFrame, metadata: list[VariableMetadata], language="de"
+):
+    """Order columns by metadata and switch labels to language
+
+    Labels in metadata are in an ordered list.
+    The order in the list corresponds to an ordered list for the codes.
+    This means that the labels will be indirectly ordered by the variable codes.
+    """
 
     label_mapping: dict[str, dict[str, str]] = {}
+    type_mapping: dict[str, list[str]] = {}
     for variable_metadata in metadata:
         variable = variable_metadata["variable"]
+        type_mapping[variable] = []
         label_mapping[variable] = {}
         for label, label_de, value in zip(
             variable_metadata["value_labels"],
@@ -43,5 +54,15 @@ def switch_label_language(data: DataFrame, metadata: list[VariableMetadata]):
         ):
             if value < 0:
                 continue
-            label_mapping[variable][label] = label_de
-    return data.replace(label_mapping)
+            if language == "de":
+                type_mapping[variable].append(label_de)
+                label_mapping[variable][label] = label_de
+                continue
+            type_mapping[variable].append(label)
+            label_mapping[variable][label] = label
+    data = data.replace(label_mapping)
+    for variable, order in type_mapping.items():
+        _type = CategoricalDtype(categories=order, ordered=True)
+        data[variable] = data[variable].astype(_type)
+    data = data.sort_values(list(type_mapping.keys()))
+    return data

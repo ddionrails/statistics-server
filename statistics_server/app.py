@@ -11,7 +11,7 @@ from plotly.graph_objects import Figure
 
 from statistics_server.language_handling import (
     get_language_config,
-    switch_label_language,
+    handle_categorical_labels_and_order,
 )
 from statistics_server.layout import create_grouping_dropdown, create_measure_dropdown
 from statistics_server.names import MEAN, PROPORTION, YEAR
@@ -196,9 +196,7 @@ def parse_search(raw_search: str) -> tuple[str, VariableType, LanguageCode]:
 
     variable_type = _ensure_correct_variable_type(parsed_search["type"][0])
     variable_name = parsed_search["variable"][0]
-    language: LanguageCode = cast(
-        LanguageCode, parsed_search.get("language", ["en"])[0]
-    )
+    language: LanguageCode = cast(LanguageCode, parsed_search.get("language", ["en"])[0])
 
     return variable_name, variable_type, language
 
@@ -394,16 +392,19 @@ def handle_inputs(
     ).absolute()
     _dataframe = read_csv(data_file)
 
-    if language == "de":
-        _base_path = get_variable_data_path(
-            variable_type=variable_type, variable_name=variable_name
-        )
-        _metadata = []
-        if variable_type == "categorical":
-            _metadata = [_get_variable_metadata(_base_path)]
-        for _variable in grouping:
-            _metadata.append(metadata[_variable])
-        _dataframe = switch_label_language(data=_dataframe, metadata=_metadata)
+    # Language handling and sorting
+    _base_path = get_variable_data_path(
+        variable_type=variable_type, variable_name=variable_name
+    )
+    _metadata = []
+    if variable_type == "categorical":
+        _metadata = [_get_variable_metadata(_base_path)]
+    for _variable in grouping:
+        _metadata.append(metadata[_variable])
+    _dataframe = handle_categorical_labels_and_order(
+        data=_dataframe, metadata=_metadata, language=language
+    )
+    # Language handling and sorting END
 
     if variable_type == "categorical":
         # It is currently important that variable name is at the end of the grouping list

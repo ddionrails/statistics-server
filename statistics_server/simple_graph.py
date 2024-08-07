@@ -61,6 +61,7 @@ def create_traces(
     language: Literal["en"] | Literal["de"] = "en",
 ) -> tuple[ScatterPlotGenerator | BarPlotGenerator, ScatterPlotGenerator | Iterable]:
     groups = dataframe.groupby(group_names)
+
     if plot_type == "bar":
         main_traces = create_main_trace_bar(groups, measure=measure, language=language)
     else:
