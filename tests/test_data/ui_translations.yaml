@@ -21,7 +21,6 @@ en:
   show_boxplot: Show Boxplot
   download_csv: Download CSV
   hide_control_panel: Hide Control Panel
-
 de:
   confidence_interval: >
     Ein Konfidenzintervall gibt die Genauigkeit eines statistischen Kennwertes an. 
