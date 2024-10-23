@@ -15,7 +15,7 @@ en:
     ‘Employment Level of Individual’ by ‘Gender’ and by ‘Federal state’,
     the percentages of the three options ‘Full Time’, ‘Part Time’ and ‘Not working’
     within each subgroup (e.g. women in Saxony) add up to 100%.
-  confidence_checkbox: Show Confidence Interval
+  confidence_checkbox: Show 95% Confidence Interval
   show_legend: Show Legend
   show_bar_graph: Show Bar Graph
   show_boxplot: Show Boxplot
@@ -41,7 +41,7 @@ de:
     nach „Geschlecht“ sowie nach „Bundesland“ gruppieren,
     addieren sich die Prozentangaben der drei Möglichkeiten „Vollzeit“, „Teilzeit“ und
     „Nicht in Arbeit“ innerhalb jeder Untergruppe (z.B. Frauen in Sachsen) auf 100%.
-  confidence_checkbox: Konfidenzintervall Anzeigen
+  confidence_checkbox: 95% Konfidenzintervall Anzeigen
   show_legend: Legende Anzeigen
   show_bar_graph: Bargraph Anzeigen
   show_boxplot: Boxplot Anzeigen
