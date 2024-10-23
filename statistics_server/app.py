@@ -28,6 +28,12 @@ from statistics_server.types import (
 )
 
 LANGUAGE_CONFIG = get_language_config()
+FONT_AWESOME_COPYRIGHT_NOTICE = (
+    "Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com"
+    "License - https://fontawesome.com/license/free"
+    " (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)"
+    "Copyright 2023 Fonticons, Inc."
+)
 
 # TODO: Find a way to switch "Mean" to german in tooltip
 
@@ -46,7 +52,7 @@ data_base_path, url_base_pathname = get_environment_variables()
 group_metadata_file = data_base_path.joinpath("group_metadata.json").absolute()
 
 server = Flask(__name__)
-app = Dash(__name__, server=server, url_base_pathname=url_base_pathname)  # type: ignore
+app = Dash(__name__, server=server, url_base_pathname=url_base_pathname, external_stylesheets=["https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"])  # type: ignore
 
 with open(group_metadata_file, "r", encoding="utf-8") as metadata_file:
     metadata = load(metadata_file)
@@ -114,7 +120,11 @@ app.layout = html.Div(
                                 html.Button(
                                     id="confidence-popover-button",
                                     className="info-icon",
-                                    children=["🛈"],
+                                    children=[html.I(className="fas fa-info-circle")],
+                                    style={"padding-left": "0.3em", "font-size": "1.2em"},
+                                    **{
+                                        "data-copyright-notice": FONT_AWESOME_COPYRIGHT_NOTICE,
+                                    },
                                 ),
                                 html.Div(
                                     id="confidence-popover",
@@ -267,7 +277,11 @@ def handle_group_dropdowns(search: str) -> tuple[list[Any], list[Any]]:
                 html.Button(
                     id="confidence-popover-button",
                     className="info-icon",
-                    children=["🛈"],
+                    children=[html.I(className="fas fa-info-circle")],
+                    style={"padding-left": "0.3em", "font-size": "1.2em"},
+                    **{
+                        "data-copyright-notice": FONT_AWESOME_COPYRIGHT_NOTICE,
+                    },
                 ),
                 html.Div(
                     id="confidence-popover",
