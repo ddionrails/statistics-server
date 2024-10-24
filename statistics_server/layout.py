@@ -5,7 +5,13 @@ from typing import Generator, Literal, Union
 from dash import dcc
 from plotly.graph_objects import Figure
 
-from statistics_server.types import PlotType
+from statistics_server.types import (
+    GroupingMetadata,
+    LanguageCode,
+    PlotType,
+    UITranslation,
+    VariableMetadata,
+)
 
 type COLOR = str
 FONT_FAMILY = "Helvetica"
@@ -88,7 +94,7 @@ LABEL_KEY: dict[str, Union[Literal["label"], Literal["label_de"]]] = {
     "en": "label",
     "de": "label_de",
 }
-UI_TRANSLATIONS = {
+UI_TRANSLATIONS: UITranslation = {
     "unselected_group": {
         "en": {"label": "No Grouping", "value": None},
         "de": {"label": "Keine Gruppierung", "value": None},
@@ -127,24 +133,31 @@ def create_measure_dropdown(language="en"):
 
 
 def create_grouping_dropdown(
-    metadata, element_id, exclude_value=None, language="en", selected=None
-):
+    metadata: dict[str, VariableMetadata],
+    element_id: str,
+    exclude_value: str = "",
+    language: LanguageCode = "en",
+    selected: str | None = None,
+) -> dcc.Dropdown:
     """Create a dropdown to select a group to group by."""
     if language != "de":
         language = "en"
     label = LABEL_KEY[language]
     default = UI_TRANSLATIONS["unselected_group"][language]
-    options = [default]
+    options: list[GroupingMetadata] = []
+    selected_value = default["value"]
 
     for group in metadata.values():
         if exclude_value == group["variable"]:
             continue
         options.append({"label": group[label], "value": group["variable"]})
     if selected != default["value"]:
-        default = {"value": selected}
+        selected_value = selected
+    options.sort(key=lambda item: item["label"])
+    options.insert(0, default)
     return dcc.Dropdown(
         options,
-        value=default["value"],
+        value=selected_value,
         id=element_id,
         placeholder=DROPDOWN_PLACEHOLDER[language],
     )

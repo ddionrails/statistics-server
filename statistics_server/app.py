@@ -38,7 +38,7 @@ FONT_AWESOME_COPYRIGHT_NOTICE = (
 # TODO: Find a way to switch "Mean" to german in tooltip
 
 
-def get_environment_variables():
+def get_environment_variables() -> tuple[Path, str]:
     base_path_env_variable = getenv("STATISTICS_BASE_PATH")
     _url_base_pathname = getenv("URL_BASE_PATHNAME", "/")
     if not base_path_env_variable:
@@ -52,7 +52,14 @@ data_base_path, url_base_pathname = get_environment_variables()
 group_metadata_file = data_base_path.joinpath("group_metadata.json").absolute()
 
 server = Flask(__name__)
-app = Dash(__name__, server=server, url_base_pathname=url_base_pathname, external_stylesheets=["https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"])  # type: ignore
+app = Dash(
+    __name__,
+    server=server,  # type: ignore
+    url_base_pathname=url_base_pathname,
+    external_stylesheets=[
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    ],
+)
 
 with open(group_metadata_file, "r", encoding="utf-8") as metadata_file:
     metadata = load(metadata_file)

@@ -21,6 +21,7 @@ class PlotlyLabeledOption(TypedDict):
     value: str | None
     label: str
 
+
 class VariableMetadata(TypedDict):
 
     label: str
@@ -30,3 +31,28 @@ class VariableMetadata(TypedDict):
     value_labels: list[str]
     value_labels_de: list[str]
     groups: list[str]
+
+
+class GroupingMetadata(TypedDict):
+    label: str
+    value: str | None
+
+
+class MeasureMetadata(TypedDict):
+    mean: str
+    median: str
+
+
+class UnselectedGroup(TypedDict):
+    en: GroupingMetadata
+    de: GroupingMetadata
+
+
+class MeasureNames(TypedDict):
+    en: MeasureMetadata
+    de: MeasureMetadata
+
+
+class UITranslation(TypedDict):
+    unselected_group: UnselectedGroup
+    measure_names: MeasureNames
