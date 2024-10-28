@@ -47,6 +47,7 @@ def create_numerical_boxplot_figure(
 ) -> graph_objects.Figure:
 
     start_year = dataframe["year"].min()
+    end_year = dataframe["year"].max()
 
     traces: EmptyIterator | BoxPlotGenerator = EmptyIterator()
     if groups:
@@ -57,7 +58,11 @@ def create_numerical_boxplot_figure(
     figure = graph_objects.Figure(list(deque(traces)))
 
     style_numeric_figure(
-        figure, start_year, dataframe["upper_whisker"].max(), plot_type="box"
+        figure=figure,
+        start_year=start_year,
+        end_year=end_year,
+        y_max=dataframe["upper_whisker"].max(),
+        plot_type="box",
     )
 
     figure.update_layout(

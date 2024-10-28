@@ -301,7 +301,8 @@ def create_line_graph_figure(
 
     style_numeric_figure(
         figure=figure,
-        start_year=dataframe["year"].min(),
+        start_year=dataframe[~dataframe[measure].isna()]["year"].min(),
+        end_year=dataframe[~dataframe[measure].isna()]["year"].max(),
         y_max=dataframe[measure].max(),
         plot_type="line",
         measure=measure,
@@ -343,6 +344,7 @@ def create_bar_graph_figure(
     style_numeric_figure(
         figure=figure,
         start_year=dataframe["year"].min(),
+        end_year=dataframe["year"].max(),
         y_max=dataframe[measure].max(),
         plot_type="bar",
         measure=measure,

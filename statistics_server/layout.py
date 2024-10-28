@@ -8,6 +8,7 @@ from plotly.graph_objects import Figure
 from statistics_server.types import (
     GroupingMetadata,
     LanguageCode,
+    Measure,
     PlotType,
     UITranslation,
     VariableMetadata,
@@ -165,10 +166,11 @@ def create_grouping_dropdown(
 
 def style_numeric_figure(
     figure: Figure,
-    start_year: int,
     y_max: int,
     plot_type: PlotType,
-    measure="mean",
+    start_year: int | None = None,
+    end_year: int | None = None,
+    measure: Measure = "mean",
 ) -> None:
     """Mutate figure to customize styling"""
     if plot_type == "line":
@@ -191,4 +193,11 @@ def style_numeric_figure(
     )
 
     figure.update_yaxes(showline=True, rangemode="tozero", linewidth=1, linecolor="black")
-    figure.update_xaxes(showline=True, linewidth=1, linecolor="black")
+
+    if not plot_type == "bar" and start_year is not None and end_year is not None:
+        figure.update_xaxes(
+            showline=True,
+            linewidth=1,
+            linecolor="black",
+            range=[start_year - 1, end_year + 1],
+        )
