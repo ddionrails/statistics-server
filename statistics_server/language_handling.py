@@ -16,7 +16,7 @@ MEASURE_TRANSLATION = {
 }
 
 UI_TRANSLATIONS_CONFIG_PATH = Path(getenv(UI_TRANSLATION_KEY, ""))
-if UI_TRANSLATIONS_CONFIG_PATH == Path("") or not UI_TRANSLATIONS_CONFIG_PATH.exists():
+if str(UI_TRANSLATIONS_CONFIG_PATH) == "" or not UI_TRANSLATIONS_CONFIG_PATH.exists():
     raise RuntimeError(
         (
             "UI translation config not properly set. "
