@@ -164,7 +164,6 @@ def create_main_trace_bar(
     del color_palette
 
 
-# TODO: Add language flag to all functions that need it
 def create_main_trace(
     groups: DataFrameGroupBy | SingleGroupIterator,
     measure: Measure = "mean",

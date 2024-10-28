@@ -35,8 +35,6 @@ FONT_AWESOME_COPYRIGHT_NOTICE = (
     "Copyright 2023 Fonticons, Inc."
 )
 
-# TODO: Find a way to switch "Mean" to german in tooltip
-
 
 def get_environment_variables() -> tuple[Path, str]:
     base_path_env_variable = getenv("STATISTICS_BASE_PATH")
