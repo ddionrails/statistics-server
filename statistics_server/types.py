@@ -1,6 +1,6 @@
-from enum import Enum
-from typing import Generator, Literal, TypedDict
+from typing import Generator, Iterator, Literal, Self, TypedDict
 
+from pandas import DataFrame
 from plotly.graph_objects import Bar, Scatter
 
 type BarPlotGenerator = Generator[Bar, None, None]
@@ -11,8 +11,17 @@ type VariableType = Literal["categorical", "numerical", "numerical"]
 type LanguageCode = Literal["en", "de"]
 
 
-class EmptyIterator(Enum):
+class EmptyIterator:
     """Create an empty iterable for typing."""
+
+    def __iter__(self) -> Self:
+        return self
+
+    def __next__(self) -> None:
+        raise StopIteration
+
+
+type SingleGroupIterator = Iterator[tuple[tuple[Literal[" "],], DataFrame]]
 
 
 class PlotlyLabeledOption(TypedDict):

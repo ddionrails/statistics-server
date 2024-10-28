@@ -1,5 +1,9 @@
 """Builders for numerical and categorical line and bar graphs."""
 
+# TODO: Refactor types
+# TODO: Change plot creation in a way that it only renders from first to last value
+# not from 1982 - 2023
+
 # %%
 
 from collections import deque
@@ -22,6 +26,7 @@ from statistics_server.types import (
     Measure,
     PlotType,
     ScatterPlotGenerator,
+    SingleGroupIterator,
 )
 
 DEFAULT_MAX_VISIBLE_TRACES = 4
@@ -37,7 +42,8 @@ def visibility_handler(
     """
     visible: str | bool = True
     for _ in range(0, DEFAULT_MAX_VISIBLE_TRACES):
-        group_key = yield
+        group_key = yield  # type: ignore
+
         visible = True
         if group_key in trace_visibility:
             visible = trace_visibility[group_key]
@@ -45,7 +51,7 @@ def visibility_handler(
 
     while True:
         visible = "legendonly"
-        group_key = yield
+        group_key = yield  # type: ignore
         if group_key in trace_visibility:
             visible = trace_visibility[group_key]
         yield visible
@@ -57,10 +63,12 @@ def create_traces(
     show_confidence: bool = True,
     measure: Measure = "mean",
     plot_type: PlotType = "line",
-    trace_visibility: dict[str, str] = {},
+    trace_visibility: dict[str, str | bool] = {},
     language: Literal["en"] | Literal["de"] = "en",
-) -> tuple[ScatterPlotGenerator | BarPlotGenerator, ScatterPlotGenerator | Iterable]:
+) -> tuple[ScatterPlotGenerator | BarPlotGenerator, ScatterPlotGenerator | EmptyIterator]:
     groups = dataframe.groupby(group_names)
+    main_traces: ScatterPlotGenerator | BarPlotGenerator
+    confidence_traces: ScatterPlotGenerator | EmptyIterator
 
     if plot_type == "bar":
         main_traces = create_main_trace_bar(groups, measure=measure, language=language)
@@ -71,7 +79,7 @@ def create_traces(
             trace_visibility=trace_visibility,
             language=language,
         )
-    confidence_traces = EmptyIterator
+    confidence_traces: ScatterPlotGenerator | EmptyIterator = EmptyIterator()
     if show_confidence:
         confidence_traces = create_confidence_trace_pairs(
             groups, measure=measure, trace_visibility=trace_visibility
@@ -109,7 +117,7 @@ def numerical_tooltip_formatting(
 
 
 def create_main_trace_bar(
-    groups: DataFrameGroupBy | Iterable,
+    groups: DataFrameGroupBy | SingleGroupIterator,
     measure: Measure = "proportion",
     trace_visibility: dict["str", "str"] = {},
     language: Literal["en"] | Literal["de"] = "en",
@@ -142,7 +150,10 @@ def create_main_trace_bar(
                     language=language,
                 )
             ),
-            hovertemplate=YEAR_TRANSLATION[language] + ": %{x}<br>" + MEASURE_TRANSLATION[language][measure.lower()] + measure_formatter,
+            hovertemplate=YEAR_TRANSLATION[language]
+            + ": %{x}<br>"
+            + MEASURE_TRANSLATION[language][measure.lower()]
+            + measure_formatter,
             textposition="none",
             marker_color=group_color_map[grouped_by[-1]],
             legendgroup=grouped_by[-1],
@@ -251,8 +262,8 @@ def create_line_graph_figure(
     language: Literal["en"] | Literal["de"] = "en",
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
-    main_traces = EmptyIterator
-    confidence_traces = EmptyIterator
+    main_traces = EmptyIterator()
+    confidence_traces = EmptyIterator()
     if not group:
         # Make a single DataFrame iterable like a groupby result.
         # (" ") is passed as grouping names instead of ("")
@@ -306,13 +317,13 @@ def create_bar_graph_figure(
     language: Literal["en"] | Literal["de"] = "en",
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
-    main_traces = EmptyIterator
-    confidence_traces = EmptyIterator
+    main_traces = EmptyIterator()
+    confidence_traces = EmptyIterator()
     if not group:
         # Make a single DataFrame iterable like a groupby result.
         # (" ") is passed as grouping names instead of ("")
         # because plotly will not group traces otherwise
-        dataframe_like_a_groupby = [((" "), dataframe)]
+        dataframe_like_a_groupby = [((" ",), dataframe)]
         main_traces = create_main_trace_bar(
             dataframe_like_a_groupby, measure=measure, language=language
         )

@@ -47,7 +47,7 @@ def create_numerical_boxplot_figure(
 
     start_year = dataframe["year"].min()
 
-    traces = EmptyIterator
+    traces = EmptyIterator()
     if groups:
         traces = create_boxplot_traces(dataframe.groupby(groups), trace_visibility)
     if not groups:
