@@ -7,7 +7,7 @@
 # %%
 
 from collections import deque
-from typing import Generator, Iterable, Literal
+from typing import Generator, Literal
 
 from pandas import DataFrame, Series, read_csv
 from pandas.core.groupby.generic import DataFrameGroupBy
@@ -22,6 +22,7 @@ from statistics_server.layout import (
 )
 from statistics_server.types import (
     BarPlotGenerator,
+    EmptyGraphIterator,
     EmptyIterator,
     Measure,
     PlotType,
@@ -65,10 +66,11 @@ def create_traces(
     plot_type: PlotType = "line",
     trace_visibility: dict[str, str | bool] = {},
     language: Literal["en"] | Literal["de"] = "en",
-) -> tuple[ScatterPlotGenerator | BarPlotGenerator, ScatterPlotGenerator | EmptyIterator]:
+) -> tuple[
+    ScatterPlotGenerator | BarPlotGenerator, ScatterPlotGenerator | EmptyGraphIterator
+]:
     groups = dataframe.groupby(group_names)
     main_traces: ScatterPlotGenerator | BarPlotGenerator
-    confidence_traces: ScatterPlotGenerator | EmptyIterator
 
     if plot_type == "bar":
         main_traces = create_main_trace_bar(groups, measure=measure, language=language)
@@ -79,7 +81,7 @@ def create_traces(
             trace_visibility=trace_visibility,
             language=language,
         )
-    confidence_traces: ScatterPlotGenerator | EmptyIterator = EmptyIterator()
+    confidence_traces: ScatterPlotGenerator | EmptyGraphIterator = EmptyGraphIterator()
     if show_confidence:
         confidence_traces = create_confidence_trace_pairs(
             groups, measure=measure, trace_visibility=trace_visibility
@@ -164,7 +166,7 @@ def create_main_trace_bar(
 
 # TODO: Add language flag to all functions that need it
 def create_main_trace(
-    groups: DataFrameGroupBy | Iterable,
+    groups: DataFrameGroupBy | SingleGroupIterator,
     measure: Measure = "mean",
     trace_visibility: dict[str, str | bool] = {},
     language: Literal["en"] | Literal["de"] = "en",
@@ -211,13 +213,13 @@ def create_main_trace(
 
 
 def create_confidence_trace_pairs(
-    groups: DataFrameGroupBy | Iterable,
+    groups: DataFrameGroupBy | EmptyIterator | SingleGroupIterator,
     measure: Measure = "mean",
     trace_visibility: dict[str, str | bool] = {},
 ) -> ScatterPlotGenerator:
     """Creates a trace for the upper and lower confidence interval bounds."""
     _visibility_handler = visibility_handler(trace_visibility)
-    for grouped_by, grouped_data in groups:
+    for grouped_by, grouped_data in groups:  # type: ignore[union-attr]
         group_key = " ".join(grouped_by)
         next(_visibility_handler)
         visible = _visibility_handler.send(group_key)
@@ -258,17 +260,17 @@ def create_line_graph_figure(
     show_confidence: bool = True,
     show_legend: bool = True,
     measure: Measure = "mean",
-    trace_visibility={},
+    trace_visibility: dict[str, str | bool] = {},
     language: Literal["en"] | Literal["de"] = "en",
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
-    main_traces = EmptyIterator()
-    confidence_traces = EmptyIterator()
+    main_traces: EmptyIterator | ScatterPlotGenerator | BarPlotGenerator = EmptyIterator()
+    confidence_traces: EmptyGraphIterator | ScatterPlotGenerator = EmptyGraphIterator()
     if not group:
         # Make a single DataFrame iterable like a groupby result.
         # (" ") is passed as grouping names instead of ("")
         # because plotly will not group traces otherwise
-        dataframe_like_a_groupby = [((" "), dataframe)]
+        dataframe_like_a_groupby: SingleGroupIterator = [((" ",), dataframe)]
         main_traces = create_main_trace(
             dataframe_like_a_groupby,
             measure=measure,
@@ -317,13 +319,13 @@ def create_bar_graph_figure(
     language: Literal["en"] | Literal["de"] = "en",
 ) -> graph_objects.Figure:
     """Assemble figure for a numerical time series statistic"""
-    main_traces = EmptyIterator()
-    confidence_traces = EmptyIterator()
+    main_traces: BarPlotGenerator | ScatterPlotGenerator
+    confidence_traces: EmptyGraphIterator | ScatterPlotGenerator = EmptyGraphIterator()
     if not group:
         # Make a single DataFrame iterable like a groupby result.
         # (" ") is passed as grouping names instead of ("")
         # because plotly will not group traces otherwise
-        dataframe_like_a_groupby = [((" ",), dataframe)]
+        dataframe_like_a_groupby: SingleGroupIterator = [((" ",), dataframe)]
         main_traces = create_main_trace_bar(
             dataframe_like_a_groupby, measure=measure, language=language
         )

@@ -1,9 +1,10 @@
-from typing import Generator, Iterator, Literal, Self, TypedDict
+from typing import Generator, Iterable, Literal, Self, TypedDict
 
 from pandas import DataFrame
-from plotly.graph_objects import Bar, Scatter
+from plotly.graph_objects import Bar, Box, Scatter
 
 type BarPlotGenerator = Generator[Bar, None, None]
+type BoxPlotGenerator = Generator[Box, None, None]
 type Measure = Literal["mean", "median", "proportion"]
 type PlotType = Literal["line", "box", "bar"]
 type ScatterPlotGenerator = Generator[Scatter, None, None]
@@ -17,11 +18,21 @@ class EmptyIterator:
     def __iter__(self) -> Self:
         return self
 
-    def __next__(self) -> None:
+    def __next__(self) -> tuple[tuple[Literal[" "],], DataFrame]:
         raise StopIteration
 
 
-type SingleGroupIterator = Iterator[tuple[tuple[Literal[" "],], DataFrame]]
+class EmptyGraphIterator:
+    """Create an empty iterable for typing."""
+
+    def __iter__(self) -> Self:
+        return self
+
+    def __next__(self) -> Scatter:
+        raise StopIteration
+
+
+type SingleGroupIterator = Iterable[tuple[tuple[Literal[" "],], DataFrame]]
 
 
 class PlotlyLabeledOption(TypedDict):

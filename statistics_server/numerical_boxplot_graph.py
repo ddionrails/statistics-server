@@ -2,19 +2,20 @@
 
 # %%
 from collections import deque
-from typing import Generator, Iterable
+from typing import Generator
 
-from pandas import read_csv
+from pandas import DataFrame, read_csv
 from pandas.core.groupby.generic import DataFrameGroupBy
 from plotly import graph_objects
 
 from statistics_server.layout import get_colors_from_palette, style_numeric_figure
 from statistics_server.simple_graph import visibility_handler
-from statistics_server.types import EmptyIterator
+from statistics_server.types import BoxPlotGenerator, EmptyIterator, SingleGroupIterator
 
 
 def create_boxplot_traces(
-    groups: DataFrameGroupBy | Iterable, trace_visibility
+    groups: DataFrameGroupBy | SingleGroupIterator,
+    trace_visibility: dict[str, str | bool],
 ) -> Generator[graph_objects.Box, None, None]:
     color_palette = get_colors_from_palette()
     _visibility_handler = visibility_handler(trace_visibility)
@@ -38,20 +39,20 @@ def create_boxplot_traces(
 
 
 def create_numerical_boxplot_figure(
-    dataframe,
+    dataframe: DataFrame,
     groups: list[str],
     y_title: str = "",
     show_legend: bool = True,
-    trace_visibility={},
-):
+    trace_visibility: dict[str, str | bool] = {},
+) -> graph_objects.Figure:
 
     start_year = dataframe["year"].min()
 
-    traces = EmptyIterator()
+    traces: EmptyIterator | BoxPlotGenerator = EmptyIterator()
     if groups:
         traces = create_boxplot_traces(dataframe.groupby(groups), trace_visibility)
     if not groups:
-        traces = create_boxplot_traces([((" "), dataframe)], trace_visibility)
+        traces = create_boxplot_traces([((" ",), dataframe)], trace_visibility)
 
     figure = graph_objects.Figure(list(deque(traces)))
 
