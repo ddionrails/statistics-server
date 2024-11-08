@@ -1,7 +1,7 @@
 from json import load
 from os import getenv, mkdir
 from pathlib import Path
-from shutil import copyfile, make_archive
+from shutil import make_archive
 from tempfile import TemporaryDirectory
 from typing import Any, cast, get_args
 from urllib.parse import parse_qs
@@ -50,6 +50,7 @@ PLACEHOLDER_MEASURE_DROPDOWN = dcc.Dropdown([MEAN], MEAN, id="measure-dropdown")
 
 data_base_path, url_base_pathname = get_environment_variables()
 group_metadata_file = data_base_path.joinpath("group_metadata.json").absolute()
+citation_metadata_file = data_base_path.joinpath("citation.json").absolute()
 
 server = Flask(__name__)
 app = Dash(
@@ -63,6 +64,8 @@ app = Dash(
 
 with open(group_metadata_file, "r", encoding="utf-8") as metadata_file:
     metadata = load(metadata_file)
+with open(citation_metadata_file, "r", encoding="utf-8") as metadata_file:
+    citation = load(metadata_file)
 
 
 def _get_variable_metadata(base_path: Path) -> dict[str, Any]:
@@ -361,15 +364,35 @@ def download(
     )
     file_name_base = "_".join([variable_name, YEAR, *grouping])
     data_file = _data_base_path.joinpath(file_name_base + ".csv").absolute()
+    data = read_csv(data_file)
 
+    # TODO: Refactor Partial redundancy
+    _base_path = get_variable_data_path(
+        variable_type=variable_type, variable_name=variable_name
+    )
+    _metadata = []
+    if variable_type == "categorical":
+        _metadata = [_get_variable_metadata(_base_path)]
+    for _variable in grouping:
+        _metadata.append(metadata[_variable])
+
+    # TODO: Refactor readability
     with TemporaryDirectory() as tmp_folder:
         path_to_zip = Path(tmp_folder).joinpath("graph")
         mkdir(path_to_zip)
-        copyfile(data_file, path_to_zip.joinpath(data_file.name))
-        # TODO: Write meaningfull citation file
-        with open(path_to_zip.joinpath("Cite.txt"), "w", encoding="utf-8") as cite_file:
-            cite_file.write("Placeholder")
+        for _language in get_args(LanguageCode.__value__):
+            _data = handle_categorical_labels_and_order(
+                data=data, metadata=_metadata, language=_language
+            )
+            _data.to_csv(
+                path_to_zip.joinpath(f"{data_file.stem}_{_language}.csv"), index=False
+            )
+            with open(
+                path_to_zip.joinpath(f"Cite_{_language}.txt"), "w", encoding="utf-8"
+            ) as cite_file:
+                cite_file.write(citation["base_citation"][_language])
         archive = make_archive(f"{tmp_folder}/{data_file.stem}", "zip", path_to_zip)
+        del data
         return dcc.send_file(archive)
 
 
