@@ -1,6 +1,8 @@
 from json import load
-from os import getenv
+from os import getenv, mkdir
 from pathlib import Path
+from shutil import copyfile, make_archive
+from tempfile import TemporaryDirectory
 from typing import Any, cast, get_args
 from urllib.parse import parse_qs
 
@@ -348,8 +350,8 @@ def download(
     first_group_value: str,
     second_group_value: str | None,
     first_group_options: list[PlotlyLabeledOption],
-    _,
-) -> dict[str, Any | None] | None:
+    _: Any,
+) -> Any:
 
     variable_name, variable_type, _ = parse_search(search)
     _data_base_path = get_variable_data_path(variable_type, variable_name)
@@ -359,11 +361,16 @@ def download(
     )
     file_name_base = "_".join([variable_name, YEAR, *grouping])
     data_file = _data_base_path.joinpath(file_name_base + ".csv").absolute()
-    _dataframe = read_csv(data_file)
 
-    download_file_name = f"{file_name_base}.csv"
-
-    return dcc.send_data_frame(_dataframe.to_csv, download_file_name, index=False)
+    with TemporaryDirectory() as tmp_folder:
+        path_to_zip = Path(tmp_folder).joinpath("graph")
+        mkdir(path_to_zip)
+        copyfile(data_file, path_to_zip.joinpath(data_file.name))
+        # TODO: Write meaningfull citation file
+        with open(path_to_zip.joinpath("Cite.txt"), "w", encoding="utf-8") as cite_file:
+            cite_file.write("Placeholder")
+        archive = make_archive(f"{tmp_folder}/{data_file.stem}", "zip", path_to_zip)
+        return dcc.send_file(archive)
 
 
 @callback(
@@ -391,7 +398,7 @@ def handle_inputs(
     bar_graph: bool,
     boxplot: bool,
     search: str,
-    current_graph,
+    current_graph: Any,
 ) -> tuple[Figure, str | None, list[PlotlyLabeledOption]]:
 
     trace_visibility = {}
