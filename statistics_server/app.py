@@ -176,8 +176,28 @@ app.layout = html.Div(
                             ],
                             value=False,
                         ),
-                        html.Button("Download CSV", id="btn-data-download"),
-                        dcc.Download(id="data-download", type="str"),
+                        html.Span(
+                            id="boxplot-flag",
+                            key="boxplot-flag",
+                            className="removed",
+                            children="hide",
+                        ),
+                        html.Div(
+                            id="download-button-container",
+                            children=[
+                                html.Button(
+                                    "Download CSV",
+                                    id="btn-data-download",
+                                ),
+                                dcc.Download(id="data-download", type="str"),
+                                html.Button(
+                                    "Download Figure",
+                                    id="btn-image-download",
+                                ),
+                                dcc.Download(id="image-download", type="str"),
+                            ],
+                            className="download-buttons",
+                        ),
                     ],
                 ),
                 dcc.Graph(
@@ -336,8 +356,22 @@ def handle_group_dropdowns(search: str) -> tuple[list[Any], list[Any]]:
         html.Span(
             id="boxplot-flag", key="boxplot-flag", className="removed", children="hide"
         ),
-        html.Button(language_config["download_csv"], id="btn-data-download"),
-        dcc.Download(id="data-download", type="str"),
+        html.Div(
+            id="download-button-container",
+            children=[
+                html.Button(
+                    language_config["download_csv"],
+                    id="btn-data-download",
+                ),
+                dcc.Download(id="data-download", type="str"),
+                html.Button(
+                    language_config["download_image"],
+                    id="btn-image-download",
+                ),
+                dcc.Download(id="image-download", type="str"),
+            ],
+            className="download-buttons",
+        ),
     ]
 
     return (children, below_control_and_graph_children)
@@ -384,7 +418,7 @@ def download(
     with TemporaryDirectory() as tmp_folder:
         path_to_zip = Path(tmp_folder).joinpath("graph")
         mkdir(path_to_zip)
-        for _language in get_args(LanguageCode.__value__):
+        for _language in ["en", "de"]:
             _data = handle_categorical_labels_and_order(
                 data=data, metadata=_metadata, language=_language
             )
@@ -397,6 +431,53 @@ def download(
                 cite_file.write(citation["base_citation"][_language])
         archive = make_archive(f"{tmp_folder}/{data_file.stem}", "zip", path_to_zip)
         del data
+        return dcc.send_file(archive)
+
+
+@callback(
+    Output("image-download", "data"),
+    dependencies.State("url", "search"),
+    dependencies.State("first-group", "value"),
+    dependencies.State("second-group", "value"),
+    dependencies.State("first-group", "options"),
+    dependencies.State("graph", "figure"),
+    Input("btn-image-download", "n_clicks"),
+    prevent_initial_call=True,
+)
+def download_image(
+    search: str,
+    first_group_value: str,
+    second_group_value: str | None,
+    first_group_options: list[PlotlyLabeledOption],
+    graph: Any,
+    _: Any,
+) -> Any:
+
+    variable_name, variable_type, language = parse_search(search)
+
+    grouping, _, second_group_value = handle_grouping(
+        first_group_value, second_group_value, first_group_options
+    )
+    file_name_base = "_".join([variable_name, YEAR, *grouping])
+
+    # TODO: Refactor Partial redundancy
+    _base_path = get_variable_data_path(
+        variable_type=variable_type, variable_name=variable_name
+    )
+
+    # TODO: Refactor readability
+    with TemporaryDirectory() as tmp_folder:
+        path_to_zip = Path(tmp_folder).joinpath("graph")
+        mkdir(path_to_zip)
+        with open(
+            path_to_zip.joinpath(f"Cite_{language}.txt"), "w", encoding="utf-8"
+        ) as cite_file:
+            cite_file.write(citation["base_citation"][language])
+        with open(path_to_zip.joinpath(f"{file_name_base}.png"), "wb") as image_file:
+            figure = Figure(**graph)
+            figure.update_layout(title=_get_variable_metadata(_base_path)["title"])
+            image_file.write(figure.to_image(format="png", width=1400, height=500))
+        archive = make_archive(f"{tmp_folder}/{file_name_base}", "zip", path_to_zip)
         return dcc.send_file(archive)
 
 
