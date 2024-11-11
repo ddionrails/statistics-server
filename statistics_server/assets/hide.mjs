@@ -13,7 +13,18 @@ if (variableType == "categorical") {
 
 if (variableType == "numerical") {
   waitForElement("#boxplot-checkbox").then((element) => {
-    element.classList.remove("removed");
+    waitForElement("#boxplot-flag").then((flag) => {
+      const observer = new MutationObserver((_) => {
+        // boxplot-flag is managed in dash code
+        if(flag.innerHTML === "show"){
+          element.classList.remove("removed");
+        }
+      });
+      observer.observe(document.querySelector("#boxplot-flag"), {
+        characterData: true,
+        subtree: true,
+      });
+    })
   });
 }
 

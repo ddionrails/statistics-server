@@ -36,6 +36,7 @@ FONT_AWESOME_COPYRIGHT_NOTICE = (
     " (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License)"
     "Copyright 2023 Fonticons, Inc."
 )
+BOXPLOT_MIN_VALUE = 10
 
 
 def get_environment_variables() -> tuple[Path, str]:
@@ -332,6 +333,9 @@ def handle_group_dropdowns(search: str) -> tuple[list[Any], list[Any]]:
             ],
             value=False,
         ),
+        html.Span(
+            id="boxplot-flag", key="boxplot-flag", className="removed", children="hide"
+        ),
         html.Button(language_config["download_csv"], id="btn-data-download"),
         dcc.Download(id="data-download", type="str"),
     ]
@@ -400,6 +404,7 @@ def download(
     Output("graph", "figure"),
     Output("second-group", "value"),
     Output("second-group", "options"),
+    Output("boxplot-flag", "children"),
     Input("first-group", "value"),
     Input("second-group", "value"),
     Input("first-group", "options"),
@@ -422,7 +427,8 @@ def handle_inputs(
     boxplot: bool,
     search: str,
     current_graph: Any,
-) -> tuple[Figure, str | None, list[PlotlyLabeledOption]]:
+) -> tuple[Figure, str | None, list[PlotlyLabeledOption], str]:
+    show_boxplot = "show"
 
     trace_visibility = {}
     if current_graph:
@@ -472,7 +478,11 @@ def handle_inputs(
             ),
             second_group_value,
             options,
+            show_boxplot,
         )
+    if _dataframe[measure].max() < BOXPLOT_MIN_VALUE:
+        boxplot = False
+        show_boxplot = "hide"
     if boxplot:
         return (
             create_numerical_boxplot_figure(
@@ -484,6 +494,7 @@ def handle_inputs(
             ),
             second_group_value,
             options,
+            show_boxplot,
         )
 
     return (
@@ -498,6 +509,7 @@ def handle_inputs(
         ),
         second_group_value,
         options,
+        show_boxplot,
     )
 
 
