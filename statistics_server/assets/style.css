@@ -57,7 +57,11 @@ body {
 
 #download-button-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  padding-top: 2em;
+  flex-wrap: wrap;
 }
 
 #download-button-container > button  {
@@ -71,6 +75,7 @@ body {
   width: 40%;
   transition: 400ms ease-in-out;
   margin-bottom: 1em;
+  min-width: 9em;
 }
 
 #download-button-container > button:hover {
