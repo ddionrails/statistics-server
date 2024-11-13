@@ -3,6 +3,9 @@ FROM python:3.12-alpine
 COPY . statistics_server
 RUN pip install --upgrade pip
 RUN pip install statistics_server/
+# Image generation in python currently needs a chrome based browser install
+RUN apk add --no-cache chromium 
+ENV BROWSER_PATH="chromium"
 
 EXPOSE 8081
 
