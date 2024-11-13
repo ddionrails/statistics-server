@@ -482,10 +482,15 @@ def download_image(
             path_to_zip.joinpath(f"Cite_{language}.txt"), "w", encoding="utf-8"
         ) as cite_file:
             cite_file.write(citation["base_citation"][language])
-        with open(path_to_zip.joinpath(f"{file_name_base}.png"), "wb") as image_file:
             figure = Figure(**graph)
             figure.update_layout(title=_get_variable_metadata(_base_path)["title"])
-            image_file.write(figure.to_image(format="png", width=1400, height=500))
+        for image_type in ["svg", "png"]:
+            figure.write_image(
+                file=path_to_zip.joinpath(f"{file_name_base}.{image_type}"),
+                format=image_type,
+                width=1400,
+                height=500,
+            )
         archive = make_archive(f"{tmp_folder}/{file_name_base}", "zip", path_to_zip)
         return dcc.send_file(archive)
 
