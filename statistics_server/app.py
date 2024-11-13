@@ -200,10 +200,19 @@ app.layout = html.Div(
                         ),
                     ],
                 ),
-                dcc.Graph(
-                    id="graph",
-                    className="graph-container",
-                    figure=Figure(),
+                html.Div(
+                    id="graph-citation-container",
+                    children=[
+                        dcc.Graph(
+                            id="graph",
+                            className="graph-container",
+                            figure=Figure(),
+                        ),
+                        html.P(
+                            id="citation-text",
+                            children=["Cite as: ", citation["base_citation"]["en"]],
+                        ),
+                    ],
                 ),
             ],
         ),
@@ -486,6 +495,7 @@ def download_image(
     Output("second-group", "value"),
     Output("second-group", "options"),
     Output("boxplot-flag", "children"),
+    Output("citation-text", "children"),
     Input("first-group", "value"),
     Input("second-group", "value"),
     Input("first-group", "options"),
@@ -508,7 +518,7 @@ def handle_inputs(
     boxplot: bool,
     search: str,
     current_graph: Any,
-) -> tuple[Figure, str | None, list[PlotlyLabeledOption], str]:
+) -> tuple[Figure, str | None, list[PlotlyLabeledOption], str, str]:
     show_boxplot = "show"
 
     trace_visibility = {}
@@ -519,6 +529,10 @@ def handle_inputs(
 
     variable_name, variable_type, language = parse_search(search)
     _data_base_path = get_variable_data_path(variable_type, variable_name)
+
+    citation_text = f"Cite as: {citation["base_citation"][language]}"
+    if language == "de":
+        citation_text = f"Zitiere mit: {citation["base_citation"][language]}"
 
     grouping, options, second_group_value = handle_grouping(
         first_group_value, second_group_value, first_group_options
@@ -560,6 +574,7 @@ def handle_inputs(
             second_group_value,
             options,
             show_boxplot,
+            citation_text,
         )
     if _dataframe[measure].max() < BOXPLOT_MIN_VALUE:
         boxplot = False
@@ -576,6 +591,7 @@ def handle_inputs(
             second_group_value,
             options,
             show_boxplot,
+            citation_text,
         )
 
     return (
@@ -591,6 +607,7 @@ def handle_inputs(
         second_group_value,
         options,
         show_boxplot,
+        citation_text,
     )
 
 

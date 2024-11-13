@@ -34,6 +34,12 @@ body {
   min-height: 200px;
 }
 
+#citation-text {
+  margin: 0;
+  text-align: end;
+  font-size: smaller;
+}
+
 #year-range-slider {
   width: 60vw;
 }
@@ -64,7 +70,7 @@ body {
   flex-wrap: wrap;
 }
 
-#download-button-container > button  {
+#download-button-container > button {
   background: #0075ff;
   border-radius: 5px;
   border: 0;
