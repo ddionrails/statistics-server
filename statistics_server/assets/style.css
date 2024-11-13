@@ -26,6 +26,7 @@ body {
   display: flex;
   flex-direction: row;
   height: 50vh;
+  min-height: 30em;
 }
 
 .graph-container {
@@ -144,5 +145,17 @@ body {
 @media screen and (max-width: 1800px) {
   .rc-slider-mark-text {
     transform: translateX(-50%) rotate(45deg) !important;
+  }
+}
+
+@media screen and (max-width: 1330px) {
+  #control-and-graph {
+    min-height: 35em;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  #control-and-graph {
+    min-height: 37em;
   }
 }
