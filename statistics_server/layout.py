@@ -101,8 +101,8 @@ UI_TRANSLATIONS: UITranslation = {
         "de": {"label": "Keine Gruppierung", "value": None},
     },
     "measure_names": {
-        "en": {"mean": "Mean", "median": "Median"},
-        "de": {"mean": "Durchschnitt", "median": "Median"},
+        "en": {"mean": "Mean"},
+        "de": {"mean": "Durchschnitt"},
     },
 }
 

@@ -5,6 +5,11 @@ body {
   font-size: medium;
 }
 
+/* TODO: Temporary fix untill theres time to fully remove measure dropdown */
+#measure-dropdown {
+  display: none;
+}
+
 .dash-dropdown {
   width: 90%;
 }

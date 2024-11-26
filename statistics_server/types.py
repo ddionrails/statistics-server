@@ -60,7 +60,6 @@ class GroupingMetadata(TypedDict):
 
 class MeasureMetadata(TypedDict):
     mean: str
-    median: str
 
 
 class UnselectedGroup(TypedDict):
