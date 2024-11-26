@@ -19,7 +19,7 @@ en:
   show_legend: Show Legend
   show_bar_graph: Show Bar Graph
   show_boxplot: Show Boxplot
-  download_csv: Download CSV
+  download_data: Download Data
   download_image: Download Figure
   hide_control_panel: Hide Control Panel
 de:
@@ -45,6 +45,6 @@ de:
   show_legend: Legende Anzeigen
   show_bar_graph: Bargraph Anzeigen
   show_boxplot: Boxplot Anzeigen
-  download_csv: CSV Herunterladen
+  download_data: Daten Herunterladen
   download_image: Graph Herunterladen
   hide_control_panel: Bedienfeld Ausblenden

@@ -369,7 +369,7 @@ def handle_group_dropdowns(search: str) -> tuple[list[Any], list[Any]]:
             id="download-button-container",
             children=[
                 html.Button(
-                    language_config["download_csv"],
+                    language_config["download_data"],
                     id="btn-data-download",
                 ),
                 dcc.Download(id="data-download", type="str"),
@@ -433,6 +433,9 @@ def download(
             )
             _data.to_csv(
                 path_to_zip.joinpath(f"{data_file.stem}_{_language}.csv"), index=False
+            )
+            _data.to_excel(
+                path_to_zip.joinpath(f"{data_file.stem}_{_language}.xlsx"), index=False
             )
             with open(
                 path_to_zip.joinpath(f"Cite_{_language}.txt"), "w", encoding="utf-8"
