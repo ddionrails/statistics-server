@@ -61,6 +61,8 @@ LINE_TYPES: tuple[LineType, ...] = (
 
 
 def y_label_intervals(y_max: int):
+    if y_max <= 2:
+        return 0.1
     if y_max <= 20:
         return 1
     if y_max <= 50:
