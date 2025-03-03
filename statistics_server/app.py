@@ -63,10 +63,16 @@ app = Dash(
     ],
 )
 
-with open(group_metadata_file, "r", encoding="utf-8") as metadata_file:
-    metadata = load(metadata_file)
-with open(citation_metadata_file, "r", encoding="utf-8") as metadata_file:
-    citation = load(metadata_file)
+metadata = {}
+if group_metadata_file.exists():
+    print("ERROR: No group metadata file found.")
+    with open(group_metadata_file, "r", encoding="utf-8") as metadata_file:
+        metadata = load(metadata_file)
+citation = {}
+if citation_metadata_file.exists():
+    print("ERROR: No citation metadata file found.")
+    with open(citation_metadata_file, "r", encoding="utf-8") as metadata_file:
+        citation = load(metadata_file)
 
 
 def _get_variable_metadata(base_path: Path) -> dict[str, Any]:
@@ -132,7 +138,10 @@ app.layout = html.Div(
                                     id="confidence-popover-button",
                                     className="info-icon",
                                     children=[html.I(className="fas fa-info-circle")],
-                                    style={"padding-left": "0.3em", "font-size": "1.2em"},
+                                    style={
+                                        "padding-left": "0.3em",
+                                        "font-size": "1.2em",
+                                    },
                                     **{
                                         "data-copyright-notice": FONT_AWESOME_COPYRIGHT_NOTICE,
                                     },
@@ -210,7 +219,10 @@ app.layout = html.Div(
                         ),
                         html.P(
                             id="citation-text",
-                            children=["Cite as: ", citation["base_citation"]["en"]],
+                            children=[
+                                "Cite as: ",
+                                citation.get("base_citation", {"en": ""})["en"],
+                            ],
                         ),
                     ],
                 ),
@@ -246,7 +258,9 @@ def parse_search(raw_search: str) -> tuple[str, VariableType, LanguageCode]:
 
     variable_type = _ensure_correct_variable_type(parsed_search["type"][0])
     variable_name = parsed_search["variable"][0]
-    language: LanguageCode = cast(LanguageCode, parsed_search.get("language", ["en"])[0])
+    language: LanguageCode = cast(
+        LanguageCode, parsed_search.get("language", ["en"])[0]
+    )
 
     return variable_name, variable_type, language
 
@@ -538,9 +552,9 @@ def handle_inputs(
     variable_name, variable_type, language = parse_search(search)
     _data_base_path = get_variable_data_path(variable_type, variable_name)
 
-    citation_text = f"Cite as: {citation["base_citation"][language]}"
+    citation_text = f"Cite as: {citation['base_citation'][language]}"
     if language == "de":
-        citation_text = f"Zitiere mit: {citation["base_citation"][language]}"
+        citation_text = f"Zitiere mit: {citation['base_citation'][language]}"
 
     grouping, options, second_group_value = handle_grouping(
         first_group_value, second_group_value, first_group_options
